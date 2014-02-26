@@ -56,7 +56,11 @@ struct adreno_ringbuffer {
 	unsigned int wptr; /* write pointer offset in dwords from baseaddr */
 	unsigned int rptr; /* read pointer offset in dwords from baseaddr */
 
+<<<<<<< HEAD:drivers/gpu/msm/adreno_ringbuffer.h
 	unsigned int global_ts;
+=======
+	unsigned int timestamp[KGSL_MEMSTORE_MAX];
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_ringbuffer.h
 };
 
 

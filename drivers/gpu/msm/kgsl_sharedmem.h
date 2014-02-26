@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2002,2007-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,7 +23,10 @@
 #include "kgsl_mmu.h"
 #include <linux/slab.h>
 #include <linux/kmemleak.h>
+<<<<<<< HEAD
 #include <linux/iommu.h>
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #include "kgsl_log.h"
 
@@ -84,6 +91,7 @@ kgsl_memdesc_get_align(const struct kgsl_memdesc *memdesc)
 }
 
 /*
+<<<<<<< HEAD
  * kgsl_memdesc_get_cachemode - Get cache mode of a memdesc
  * @memdesc: the memdesc
  *
@@ -96,6 +104,8 @@ kgsl_memdesc_get_cachemode(const struct kgsl_memdesc *memdesc)
 }
 
 /*
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  * kgsl_memdesc_set_align - Set alignment flags of a memdesc
  * @memdesc - the memdesc
  * @align - alignment requested, as a power of 2 exponent.
@@ -175,6 +185,7 @@ memdesc_sg_phys(struct kgsl_memdesc *memdesc,
 	return 0;
 }
 
+<<<<<<< HEAD
 /*
  * kgsl_memdesc_is_global - is this a globally mapped buffer?
  * @memdesc: the memdesc
@@ -251,10 +262,13 @@ kgsl_memdesc_mmapsize(const struct kgsl_memdesc *memdesc)
 	return size;
 }
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static inline int
 kgsl_allocate(struct kgsl_memdesc *memdesc,
 		struct kgsl_pagetable *pagetable, size_t size)
 {
+<<<<<<< HEAD
 	int ret;
 	memdesc->priv |= (KGSL_MEMTYPE_KERNEL << KGSL_MEMTYPE_SHIFT);
 	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_NONE)
@@ -267,6 +281,12 @@ kgsl_allocate(struct kgsl_memdesc *memdesc,
 	if (ret)
 		kgsl_sharedmem_free(memdesc);
 	return ret;
+=======
+	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_NONE)
+		return kgsl_sharedmem_ebimem(memdesc, pagetable, size);
+	memdesc->flags |= (KGSL_MEMTYPE_KERNEL << KGSL_MEMTYPE_SHIFT);
+	return kgsl_sharedmem_page_alloc(memdesc, pagetable, size);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static inline int
@@ -276,9 +296,12 @@ kgsl_allocate_user(struct kgsl_memdesc *memdesc,
 {
 	int ret;
 
+<<<<<<< HEAD
 	if (size == 0)
 		return -EINVAL;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	memdesc->flags = flags;
 
 	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_NONE)
@@ -300,4 +323,18 @@ kgsl_allocate_contiguous(struct kgsl_memdesc *memdesc, size_t size)
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+static inline int kgsl_sg_size(struct scatterlist *sg, int sglen)
+{
+	int i, size = 0;
+	struct scatterlist *s;
+
+	for_each_sg(sg, s, sglen, i) {
+		size += s->length;
+	}
+
+	return size;
+}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #endif /* __KGSL_SHAREDMEM_H */

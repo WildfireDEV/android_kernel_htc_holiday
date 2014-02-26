@@ -13,6 +13,7 @@
 #ifndef __KGSL_MMU_H
 #define __KGSL_MMU_H
 
+<<<<<<< HEAD
 #include <mach/iommu.h>
 
 /*
@@ -23,6 +24,18 @@
 #define KGSL_IOMMU_GLOBAL_MEM_SIZE	SZ_4M
 
 #define KGSL_MMU_ALIGN_MASK     (~((1 << PAGE_SHIFT) - 1))
+=======
+/*
+ * These defines control the split between ttbr1 and ttbr0 pagetables of IOMMU
+ * and what ranges of memory we map to them
+ */
+#define KGSL_IOMMU_GLOBAL_MEM_BASE	0xC0000000
+#define KGSL_IOMMU_GLOBAL_MEM_SIZE	SZ_4M
+#define KGSL_IOMMU_TTBR1_SPLIT		2
+
+#define KGSL_MMU_ALIGN_SHIFT    13
+#define KGSL_MMU_ALIGN_MASK     (~((1 << KGSL_MMU_ALIGN_SHIFT) - 1))
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 /* Identifier for the global page table */
 /* Per process page tables will probably pass in the thread group
@@ -155,10 +168,13 @@ struct kgsl_mmu_ops {
 	unsigned int (*mmu_sync_unlock)
 			(struct kgsl_mmu *mmu,
 			unsigned int *cmds);
+<<<<<<< HEAD
 	int (*mmu_setup_pt) (struct kgsl_mmu *mmu,
 			struct kgsl_pagetable *pt);
 	void (*mmu_cleanup_pt) (struct kgsl_mmu *mmu,
 			struct kgsl_pagetable *pt);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 struct kgsl_mmu_pt_ops {
@@ -204,9 +220,16 @@ int kgsl_mmu_init(struct kgsl_device *device);
 int kgsl_mmu_start(struct kgsl_device *device);
 int kgsl_mmu_close(struct kgsl_device *device);
 int kgsl_mmu_map(struct kgsl_pagetable *pagetable,
+<<<<<<< HEAD
 		 struct kgsl_memdesc *memdesc);
 int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
 			struct kgsl_memdesc *memdesc);
+=======
+		 struct kgsl_memdesc *memdesc,
+		 unsigned int protflags);
+int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
+			struct kgsl_memdesc *memdesc, unsigned int protflags);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
 		    struct kgsl_memdesc *memdesc);
 unsigned int kgsl_virtaddr_to_physaddr(void *virtaddr);
@@ -223,6 +246,10 @@ void *kgsl_mmu_ptpool_init(int entries);
 int kgsl_mmu_enabled(void);
 void kgsl_mmu_set_mmutype(char *mmutype);
 enum kgsl_mmutype kgsl_mmu_get_mmutype(void);
+<<<<<<< HEAD
+=======
+unsigned int kgsl_mmu_get_ptsize(void);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 int kgsl_mmu_gpuaddr_in_range(unsigned int gpuaddr);
 
 /*
@@ -354,6 +381,7 @@ static inline int kgsl_mmu_sync_unlock(struct kgsl_mmu *mmu,
 		return 0;
 }
 
+<<<<<<< HEAD
 /*
  * kgsl_mmu_is_perprocess() - Runtime check for per-process
  * pagetables.
@@ -428,4 +456,6 @@ static inline unsigned int kgsl_mmu_get_ptsize(void)
 	return 0;
 }
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #endif /* __KGSL_MMU_H */

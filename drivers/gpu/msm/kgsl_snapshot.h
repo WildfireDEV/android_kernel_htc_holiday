@@ -52,7 +52,10 @@ struct kgsl_snapshot_section_header {
 #define KGSL_SNAPSHOT_SECTION_DEBUG        0x0901
 #define KGSL_SNAPSHOT_SECTION_DEBUGBUS     0x0A01
 #define KGSL_SNAPSHOT_SECTION_GPU_OBJECT   0x0B01
+<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.h
 #define KGSL_SNAPSHOT_SECTION_MEMLIST      0x0E01
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.h
 
 #define KGSL_SNAPSHOT_SECTION_END          0xFFFF
 

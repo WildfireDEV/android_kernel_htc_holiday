@@ -1600,16 +1600,28 @@ static void a2xx_drawctxt_restore(struct adreno_device *adreno_dev,
 	adreno_ringbuffer_issuecmds(device, context, KGSL_CMD_FLAGS_NONE,
 					cmds, 5);
 	kgsl_mmu_setstate(&device->mmu, context->pagetable, context->id);
+<<<<<<< HEAD:drivers/gpu/msm/adreno_a2xx.c
+=======
+
+#ifndef CONFIG_MSM_KGSL_CFF_DUMP_NO_CONTEXT_MEM_DUMP
+	kgsl_cffdump_syncmem(NULL, &context->gpustate,
+		context->gpustate.gpuaddr, LCC_SHADOW_SIZE +
+		REG_SHADOW_SIZE + CMD_BUFFER_SIZE + TEX_SHADOW_SIZE, false);
+#endif
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_a2xx.c
 
 	/* restore gmem.
 	 *  (note: changes shader. shader must not already be restored.)
 	 */
 	if (context->flags & CTXT_FLAGS_GMEM_RESTORE) {
+<<<<<<< HEAD:drivers/gpu/msm/adreno_a2xx.c
 		kgsl_cffdump_syncmem(NULL, &context->gpustate,
 			context->context_gmem_shadow.gmem_restore[1],
 			context->context_gmem_shadow.gmem_restore[2] << 2,
 			true);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_a2xx.c
 		adreno_ringbuffer_issuecmds(device, context,
 			KGSL_CMD_FLAGS_PMODE,
 			context->context_gmem_shadow.gmem_restore, 3);
@@ -1639,10 +1651,13 @@ static void a2xx_drawctxt_restore(struct adreno_device *adreno_dev,
 
 		/* restore shader instructions & partitioning. */
 		if (context->flags & CTXT_FLAGS_SHADER_RESTORE) {
+<<<<<<< HEAD:drivers/gpu/msm/adreno_a2xx.c
 			kgsl_cffdump_syncmem(NULL, &context->gpustate,
 				context->shader_restore[1],
 				context->shader_restore[2] << 2, true);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_a2xx.c
 			adreno_ringbuffer_issuecmds(device, context,
 				KGSL_CMD_FLAGS_NONE,
 				context->shader_restore, 3);
@@ -1843,6 +1858,7 @@ static void a2xx_irq_control(struct adreno_device *adreno_dev, int state)
 static unsigned int a2xx_irq_pending(struct adreno_device *adreno_dev)
 {
 	struct kgsl_device *device = &adreno_dev->dev;
+<<<<<<< HEAD:drivers/gpu/msm/adreno_a2xx.c
 	unsigned int status;
 
 	adreno_regread(device, REG_MASTER_INT_SIGNAL, &status);
@@ -1854,15 +1870,31 @@ static unsigned int a2xx_irq_pending(struct adreno_device *adreno_dev)
 }
 
 static int a2xx_rb_init(struct adreno_device *adreno_dev,
+=======
+	unsigned int rbbm, cp, mh;
+
+	adreno_regread(device, REG_RBBM_INT_CNTL, &rbbm);
+	adreno_regread(device, REG_CP_INT_CNTL, &cp);
+	adreno_regread(device, MH_INTERRUPT_MASK, &mh);
+
+	return ((rbbm & RBBM_INT_MASK) || (cp & CP_INT_MASK) ||
+		(mh & kgsl_mmu_get_int_mask())) ? 1 : 0;
+}
+
+static void a2xx_rb_init(struct adreno_device *adreno_dev,
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_a2xx.c
 			struct adreno_ringbuffer *rb)
 {
 	unsigned int *cmds, cmds_gpu;
 
 	/* ME_INIT */
 	cmds = adreno_ringbuffer_allocspace(rb, NULL, 19);
+<<<<<<< HEAD:drivers/gpu/msm/adreno_a2xx.c
 	if (cmds == NULL)
 		return -ENOMEM;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_a2xx.c
 	cmds_gpu = rb->buffer_desc.gpuaddr + sizeof(uint)*(rb->wptr-19);
 
 	GSL_RB_WRITE(cmds, cmds_gpu, cp_type3_packet(CP_ME_INIT, 18));

@@ -24,7 +24,10 @@
 #include "adreno_ringbuffer.h"
 
 #include "a2xx_reg.h"
+<<<<<<< HEAD
 #include "a3xx_reg.h"
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #define GSL_RB_NOP_SIZEDWORDS				2
 
@@ -319,7 +322,11 @@ int adreno_ringbuffer_load_pfp_ucode(struct kgsl_device *device)
 	return 0;
 }
 
+<<<<<<< HEAD
 int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
+=======
+int adreno_ringbuffer_start(struct adreno_ringbuffer *rb, unsigned int init_ram)
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 {
 	int status;
 	/*cp_rb_cntl_u cp_rb_cntl; */
@@ -331,6 +338,12 @@ int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
 	if (rb->flags & KGSL_FLAGS_STARTED)
 		return 0;
 
+<<<<<<< HEAD
+=======
+	if (init_ram)
+		rb->timestamp[KGSL_MEMSTORE_GLOBAL] = 0;
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	kgsl_sharedmem_set(&rb->memptrs_desc, 0, 0,
 			   sizeof(struct kgsl_rbmemptrs));
 
@@ -380,6 +393,7 @@ int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
 			     rb->memptrs_desc.gpuaddr +
 			     GSL_RB_MEMPTRS_RPTR_OFFSET);
 
+<<<<<<< HEAD
 	if (adreno_is_a3xx(adreno_dev)) {
 		/* enable access protection to privileged registers */
 		adreno_regwrite(device, A3XX_CP_PROTECT_CTRL, 0x00000007);
@@ -406,6 +420,8 @@ int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
 		adreno_regwrite(device, A3XX_CP_PROTECT_REG_C, 0x6B00C000);
 	}
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (adreno_is_a2xx(adreno_dev)) {
 		/* explicitly clear all cp interrupts */
 		adreno_regwrite(device, REG_CP_INT_ACK, 0xFFFFFFFF);
@@ -429,10 +445,13 @@ int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
 	if (status != 0)
 		return status;
 
+<<<<<<< HEAD
 	/* CP ROQ queue sizes (bytes) - RB:16, ST:16, IB1:32, IB2:64 */
 	if (adreno_is_a305(adreno_dev) || adreno_is_a320(adreno_dev))
 		adreno_regwrite(device, REG_CP_QUEUE_THRESHOLDS, 0x000E0602);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	rb->rptr = 0;
 	rb->wptr = 0;
 
@@ -440,9 +459,13 @@ int adreno_ringbuffer_start(struct adreno_ringbuffer *rb)
 	adreno_regwrite(device, REG_CP_ME_CNTL, 0);
 
 	/* ME init is GPU specific, so jump into the sub-function */
+<<<<<<< HEAD
 	status = adreno_dev->gpudev->rb_init(adreno_dev, rb);
 	if (status)
 		return status;
+=======
+	adreno_dev->gpudev->rb_init(adreno_dev, rb);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* idle device to validate ME INIT */
 	status = adreno_idle(device);
@@ -480,7 +503,10 @@ int adreno_ringbuffer_init(struct kgsl_device *device)
 	 */
 	rb->sizedwords = KGSL_RB_SIZE >> 2;
 
+<<<<<<< HEAD
 	rb->buffer_desc.flags = KGSL_MEMFLAGS_GPUREADONLY;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* allocate memory for ringbuffer */
 	status = kgsl_allocate_contiguous(&rb->buffer_desc,
 		(rb->sizedwords << 2));
@@ -523,6 +549,7 @@ void adreno_ringbuffer_close(struct adreno_ringbuffer *rb)
 	memset(rb, 0, sizeof(struct adreno_ringbuffer));
 }
 
+<<<<<<< HEAD
 static int
 adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 				struct adreno_context *context,
@@ -530,17 +557,31 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 				int sizedwords)
 {
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(rb->device);
+=======
+static uint32_t
+adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
+				struct adreno_context *context,
+				unsigned int flags, unsigned int *cmds,
+				int sizedwords, uint32_t timestamp)
+{
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	unsigned int *ringcmds;
 	unsigned int total_sizedwords = sizedwords;
 	unsigned int i;
 	unsigned int rcmd_gpu;
+<<<<<<< HEAD
 	unsigned int context_id;
 	unsigned int gpuaddr = rb->device->memstore.gpuaddr;
 	unsigned int timestamp;
+=======
+	unsigned int context_id = KGSL_MEMSTORE_GLOBAL;
+	unsigned int gpuaddr = rb->device->memstore.gpuaddr;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/*
 	 * if the context was not created with per context timestamp
 	 * support, we must use the global timestamp since issueibcmds
+<<<<<<< HEAD
 	 * will be returning that one, or if an internal issue then
 	 * use global timestamp.
 	 */
@@ -549,6 +590,25 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		context_id = context->id;
 	else
 		context_id = KGSL_MEMSTORE_GLOBAL;
+=======
+	 * will be returning that one.
+	 */
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS)
+		context_id = context->id;
+
+	if ((context && context->flags & CTXT_FLAGS_USER_GENERATED_TS) &&
+			(!(flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE))) {
+		if (timestamp_cmp(rb->timestamp[context_id],
+						timestamp) >= 0) {
+			KGSL_DRV_ERR(rb->device,
+				"Invalid user generated ts <%d:0x%x>, "
+				"less than last issued ts <%d:0x%x>\n",
+				context_id, timestamp, context_id,
+				rb->timestamp[context_id]);
+			return -ERANGE;
+		}
+	}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* reserve space to temporarily turn off protected mode
 	*  error checking if needed
@@ -556,12 +616,16 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	total_sizedwords += flags & KGSL_CMD_FLAGS_PMODE ? 4 : 0;
 	/* 2 dwords to store the start of command sequence */
 	total_sizedwords += 2;
+<<<<<<< HEAD
 	/* internal ib command identifier for the ringbuffer */
 	total_sizedwords += (flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE) ? 2 : 0;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* Add CP_COND_EXEC commands to generate CP_INTERRUPT */
 	total_sizedwords += context ? 13 : 0;
 
+<<<<<<< HEAD
 	if ((context) && (context->flags & CTXT_FLAGS_PER_CONTEXT_TS) &&
 		(flags & (KGSL_CMD_FLAGS_INTERNAL_ISSUE |
 		KGSL_CMD_FLAGS_GET_INT)))
@@ -584,6 +648,30 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	ringcmds = adreno_ringbuffer_allocspace(rb, context, total_sizedwords);
 	if (!ringcmds)
 		return -ENOSPC;
+=======
+	total_sizedwords += 2; /* scratchpad ts for fault tolerance */
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS &&
+			!(flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE)) {
+		total_sizedwords += 3; /* sop timestamp */
+		total_sizedwords += 4; /* eop timestamp */
+		total_sizedwords += 3; /* global timestamp without cache
+					* flush for non-zero context */
+	} else {
+		total_sizedwords += 4; /* global timestamp for fault tolerance*/
+	}
+
+	if (flags & KGSL_CMD_FLAGS_EOF)
+		total_sizedwords += 2;
+
+	ringcmds = adreno_ringbuffer_allocspace(rb, context, total_sizedwords);
+	if (!ringcmds) {
+		/*
+		 * We could not allocate space in ringbuffer, just return the
+		 * last timestamp
+		 */
+		return rb->timestamp[context_id];
+	}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	rcmd_gpu = rb->buffer_desc.gpuaddr
 		+ sizeof(uint)*(rb->wptr-total_sizedwords);
@@ -591,6 +679,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_nop_packet(1));
 	GSL_RB_WRITE(ringcmds, rcmd_gpu, KGSL_CMD_IDENTIFIER);
 
+<<<<<<< HEAD
 	if (flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE) {
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_nop_packet(1));
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, KGSL_CMD_INTERNAL_IDENTIFIER);
@@ -614,6 +703,8 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		KGSL_MEMSTORE_OFFSET(context_id, soptimestamp)));
 	GSL_RB_WRITE(ringcmds, rcmd_gpu, timestamp);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (flags & KGSL_CMD_FLAGS_PMODE) {
 		/* disable protected mode error checking */
 		GSL_RB_WRITE(ringcmds, rcmd_gpu,
@@ -633,6 +724,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, 1);
 	}
 
+<<<<<<< HEAD
 	/* HW Workaround for MMU Page fault
 	* due to memory getting free early before
 	* GPU completes it.
@@ -675,6 +767,60 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
 			eoptimestamp)));
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, rb->global_ts);
+=======
+	/* always increment the global timestamp. once. */
+	rb->timestamp[KGSL_MEMSTORE_GLOBAL]++;
+
+	/* Do not update context's timestamp for internal submissions */
+	if (context && !(flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE)) {
+		if (context_id == KGSL_MEMSTORE_GLOBAL)
+			rb->timestamp[context->id] =
+				rb->timestamp[KGSL_MEMSTORE_GLOBAL];
+		else if (context->flags & CTXT_FLAGS_USER_GENERATED_TS)
+			rb->timestamp[context_id] = timestamp;
+		else
+			rb->timestamp[context_id]++;
+	}
+	timestamp = rb->timestamp[context_id];
+
+	/* scratchpad ts for fault tolerance */
+	GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_type0_packet(REG_CP_TIMESTAMP, 1));
+	GSL_RB_WRITE(ringcmds, rcmd_gpu, rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS
+			&& !(flags & KGSL_CMD_FLAGS_INTERNAL_ISSUE)) {
+		/* start-of-pipeline timestamp */
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+			cp_type3_packet(CP_MEM_WRITE, 2));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, (gpuaddr +
+			KGSL_MEMSTORE_OFFSET(context_id, soptimestamp)));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, timestamp);
+
+		/* end-of-pipeline timestamp */
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+			cp_type3_packet(CP_EVENT_WRITE, 3));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, CACHE_FLUSH_TS);
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, (gpuaddr +
+			KGSL_MEMSTORE_OFFSET(context_id, eoptimestamp)));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, timestamp);
+
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+			cp_type3_packet(CP_MEM_WRITE, 2));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, (gpuaddr +
+			KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
+				eoptimestamp)));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+			rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+	} else {
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+			cp_type3_packet(CP_EVENT_WRITE, 3));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, CACHE_FLUSH_TS);
+		GSL_RB_WRITE(ringcmds, rcmd_gpu, (gpuaddr +
+			KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
+						eoptimestamp)));
+		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+				rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 	if (context) {
 		/* Conditional execution based on memory values */
@@ -712,6 +858,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, CP_INT_CNTL__RB_INT_MASK);
 	}
 
+<<<<<<< HEAD
 	/*
 	 * If per context timestamps are enabled and any of the kgsl
 	 * internal commands want INT to be generated trigger the INT
@@ -734,6 +881,8 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, 0);
 	}
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (flags & KGSL_CMD_FLAGS_EOF) {
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_nop_packet(1));
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, KGSL_END_OF_FRAME_IDENTIFIER);
@@ -741,7 +890,11 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 
 	adreno_ringbuffer_submit(rb);
 
+<<<<<<< HEAD
 	return 0;
+=======
+	return timestamp;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 unsigned int
@@ -761,7 +914,11 @@ adreno_ringbuffer_issuecmds(struct kgsl_device *device,
 	flags |= KGSL_CMD_FLAGS_INTERNAL_ISSUE;
 
 	return adreno_ringbuffer_addcmds(rb, drawctxt, flags, cmds,
+<<<<<<< HEAD
 							sizedwords);
+=======
+							sizedwords, 0);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static bool _parse_ibs(struct kgsl_device_private *dev_priv, uint gpuaddr,
@@ -855,8 +1012,15 @@ static bool _parse_ibs(struct kgsl_device_private *dev_priv,
 					 buffer */
 	struct kgsl_mem_entry *entry;
 
+<<<<<<< HEAD
 	entry = kgsl_sharedmem_find_region(dev_priv->process_priv,
 					   gpuaddr, sizedwords * sizeof(uint));
+=======
+	spin_lock(&dev_priv->process_priv->mem_lock);
+	entry = kgsl_sharedmem_find_region(dev_priv->process_priv,
+					   gpuaddr, sizedwords * sizeof(uint));
+	spin_unlock(&dev_priv->process_priv->mem_lock);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (entry == NULL) {
 		KGSL_CMD_ERR(dev_priv->device,
 			     "no mapping for gpuaddr: 0x%08x\n", gpuaddr);
@@ -964,6 +1128,7 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 {
 	struct kgsl_device *device = dev_priv->device;
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+<<<<<<< HEAD
 	unsigned int *link = 0;
 	unsigned int *cmds;
 	unsigned int i;
@@ -981,14 +1146,32 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 		ret = -EINVAL;
 		goto done;
 	}
+=======
+	unsigned int *link;
+	unsigned int *cmds;
+	unsigned int i;
+	struct adreno_context *drawctxt;
+	unsigned int start_index = 0;
+
+	if (device->state & KGSL_STATE_HUNG)
+		return -EBUSY;
+	if (!(adreno_dev->ringbuffer.flags & KGSL_FLAGS_STARTED) ||
+	      context == NULL || ibdesc == 0 || numibs == 0)
+		return -EINVAL;
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	drawctxt = context->devctxt;
 
 	if (drawctxt->flags & CTXT_FLAGS_GPU_HANG) {
 		KGSL_CTXT_ERR(device, "proc %s failed fault tolerance"
 			" will not accept commands for context %d\n",
 			drawctxt->pid_name, drawctxt->id);
+<<<<<<< HEAD
 		ret = -EDEADLK;
 		goto done;
+=======
+		return -EDEADLK;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	if (drawctxt->flags & CTXT_FLAGS_SKIP_EOF) {
@@ -1004,8 +1187,14 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 	cmds = link = kzalloc(sizeof(unsigned int) * (numibs * 3 + 4),
 				GFP_KERNEL);
 	if (!link) {
+<<<<<<< HEAD
 		ret = -ENOMEM;
 		goto done;
+=======
+		KGSL_CORE_ERR("kzalloc(%d) failed\n",
+			sizeof(unsigned int) * (numibs * 3 + 4));
+		return -ENOMEM;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	/*When preamble is enabled, the preamble buffer with state restoration
@@ -1030,6 +1219,7 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 		if (unlikely(adreno_dev->ib_check_level >= 1 &&
 		    !_parse_ibs(dev_priv, ibdesc[i].gpuaddr,
 				ibdesc[i].sizedwords))) {
+<<<<<<< HEAD
 			ret = -EINVAL;
 			goto done;
 		}
@@ -1039,6 +1229,11 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 			goto done;
 		}
 
+=======
+			kfree(link);
+			return -EINVAL;
+		}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		*cmds++ = CP_HDR_INDIRECT_BUFFER_PFD;
 		*cmds++ = ibdesc[i].gpuaddr;
 		*cmds++ = ibdesc[i].sizedwords;
@@ -1053,6 +1248,7 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 
 	adreno_drawctxt_switch(adreno_dev, drawctxt, flags);
 
+<<<<<<< HEAD
 	if (drawctxt->flags & CTXT_FLAGS_USER_GENERATED_TS) {
 		if (timestamp_cmp(drawctxt->timestamp, *timestamp) >= 0) {
 			KGSL_DRV_ERR(device,
@@ -1077,6 +1273,17 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 		*timestamp = drawctxt->timestamp;
 	else
 		*timestamp = adreno_dev->ringbuffer.global_ts;
+=======
+	*timestamp = adreno_ringbuffer_addcmds(&adreno_dev->ringbuffer,
+					drawctxt,
+					(flags & KGSL_CMD_FLAGS_EOF),
+					&link[0], (cmds - link), *timestamp);
+
+	KGSL_CMD_INFO(device, "ctxt %d g %08x numibs %d ts %d\n",
+		context->id, (unsigned int)ibdesc, numibs, *timestamp);
+
+	kfree(link);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #ifdef CONFIG_MSM_KGSL_CFF_DUMP
 	/*
@@ -1093,6 +1300,7 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 	 */
 	if (drawctxt->flags & CTXT_FLAGS_GPU_HANG_FT) {
 		drawctxt->flags &= ~CTXT_FLAGS_GPU_HANG_FT;
+<<<<<<< HEAD
 		ret = -EPROTO;
 	}
 
@@ -1102,6 +1310,11 @@ done:
 
 	kfree(link);
 	return ret;
+=======
+		return -EPROTO;
+	} else
+		return 0;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static void _turn_preamble_on_for_ib_seq(struct adreno_ringbuffer *rb,
@@ -1176,13 +1389,20 @@ void adreno_ringbuffer_extract(struct adreno_ringbuffer *rb,
 	if (0xFFFFFFFF == ft_data->start_of_replay_cmds)
 		return;
 
+<<<<<<< HEAD
 	k_ctxt = kgsl_context_get(device, ft_data->context_id);
 
+=======
+	k_ctxt = idr_find(&device->context_idr, ft_data->context_id);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (k_ctxt) {
 		a_ctxt = k_ctxt->devctxt;
 		if (a_ctxt->flags & CTXT_FLAGS_PREAMBLE)
 			_turn_preamble_on_for_ib_seq(rb, rb_rptr);
+<<<<<<< HEAD
 		kgsl_context_put(k_ctxt);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 	k_ctxt = NULL;
 
@@ -1213,8 +1433,12 @@ void adreno_ringbuffer_extract(struct adreno_ringbuffer *rb,
 			/* if context switches to a context that did not cause
 			 * hang then start saving the rb contents as those
 			 * commands can be executed */
+<<<<<<< HEAD
 			k_ctxt = kgsl_context_get(rb->device, val2);
 
+=======
+			k_ctxt = idr_find(&rb->device->context_idr, val2);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 			if (k_ctxt) {
 				a_ctxt = k_ctxt->devctxt;
 
@@ -1252,7 +1476,10 @@ void adreno_ringbuffer_extract(struct adreno_ringbuffer *rb,
 				copy_rb_contents = 0;
 			}
 			}
+<<<<<<< HEAD
 			kgsl_context_put(k_ctxt);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		}
 
 		if (copy_rb_contents)

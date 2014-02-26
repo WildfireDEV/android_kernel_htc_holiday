@@ -1,4 +1,8 @@
+<<<<<<< HEAD:drivers/gpu/msm/kgsl_debugfs.h
 /* Copyright (c) 2002,2008-2011, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2002,2008-2011,2013, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_debugfs.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and

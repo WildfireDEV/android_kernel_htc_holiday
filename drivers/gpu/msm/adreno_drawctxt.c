@@ -1,4 +1,8 @@
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.c
 /* Copyright (c) 2002,2007-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -148,6 +152,7 @@ int adreno_drawctxt_create(struct kgsl_device *device,
 {
 	struct adreno_context *drawctxt;
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
 	int ret;
 
 	drawctxt = kzalloc(sizeof(struct adreno_context), GFP_KERNEL);
@@ -160,6 +165,7 @@ int adreno_drawctxt_create(struct kgsl_device *device,
 	drawctxt->pagetable = pagetable;
 	drawctxt->bin_base_offset = 0;
 	drawctxt->id = context->id;
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.c
 	drawctxt->timestamp = 0;
 
 	*flags &= (KGSL_CONTEXT_PREAMBLE |
@@ -168,6 +174,9 @@ int adreno_drawctxt_create(struct kgsl_device *device,
 		KGSL_CONTEXT_USER_GENERATED_TS |
 		KGSL_CONTEXT_NO_FAULT_TOLERANCE |
 		KGSL_CONTEXT_TYPE_MASK);
+=======
+	rb->timestamp[context->id] = 0;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.c
 
 	if (*flags & KGSL_CONTEXT_PREAMBLE)
 		drawctxt->flags |= CTXT_FLAGS_PREAMBLE;
@@ -175,23 +184,37 @@ int adreno_drawctxt_create(struct kgsl_device *device,
 	if (*flags & KGSL_CONTEXT_NO_GMEM_ALLOC)
 		drawctxt->flags |= CTXT_FLAGS_NOGMEMALLOC;
 
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.c
 	if (*flags & KGSL_CONTEXT_PER_CONTEXT_TS)
 		drawctxt->flags |= CTXT_FLAGS_PER_CONTEXT_TS;
 
 	if (*flags & KGSL_CONTEXT_USER_GENERATED_TS) {
 		if (!(*flags & KGSL_CONTEXT_PER_CONTEXT_TS)) {
+=======
+	if (flags & KGSL_CONTEXT_PER_CONTEXT_TS)
+		drawctxt->flags |= CTXT_FLAGS_PER_CONTEXT_TS;
+
+	if (flags & KGSL_CONTEXT_USER_GENERATED_TS) {
+		if (!(flags & KGSL_CONTEXT_PER_CONTEXT_TS)) {
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.c
 			ret = -EINVAL;
 			goto err;
 		}
 		drawctxt->flags |= CTXT_FLAGS_USER_GENERATED_TS;
 	}
 
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.c
 	if (*flags & KGSL_CONTEXT_NO_FAULT_TOLERANCE)
 		drawctxt->flags |= CTXT_FLAGS_NO_FAULT_TOLERANCE;
 
 	drawctxt->type =
 		(*flags & KGSL_CONTEXT_TYPE_MASK) >> KGSL_CONTEXT_TYPE_SHIFT;
 
+=======
+	if (flags & KGSL_CONTEXT_NO_FAULT_TOLERANCE)
+		drawctxt->flags |= CTXT_FLAGS_NO_FAULT_TOLERANCE;
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.c
 	ret = adreno_dev->gpudev->ctxt_create(adreno_dev, drawctxt);
 	if (ret)
 		goto err;

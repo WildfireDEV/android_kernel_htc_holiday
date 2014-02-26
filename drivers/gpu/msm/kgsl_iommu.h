@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,6 +23,7 @@
 #define KGSL_IOMMU_CTX_OFFSET_V2	0x8000
 #define KGSL_IOMMU_CTX_SHIFT		12
 
+<<<<<<< HEAD
 /* TLBLKCR fields */
 #define KGSL_IOMMU_TLBLKCR_LKE_MASK		0x00000001
 #define KGSL_IOMMU_TLBLKCR_LKE_SHIFT		0
@@ -46,6 +51,8 @@
 #define KGSL_IOMMU_V1_FSYNR0_WNR_MASK		0x00000001
 #define KGSL_IOMMU_V1_FSYNR0_WNR_SHIFT		4
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 enum kgsl_iommu_reg_map {
 	KGSL_IOMMU_GLOBAL_BASE = 0,
 	KGSL_IOMMU_CTX_TTBR0,
@@ -53,10 +60,13 @@ enum kgsl_iommu_reg_map {
 	KGSL_IOMMU_CTX_FSR,
 	KGSL_IOMMU_CTX_TLBIALL,
 	KGSL_IOMMU_CTX_RESUME,
+<<<<<<< HEAD
 	KGSL_IOMMU_CTX_TLBLKCR,
 	KGSL_IOMMU_CTX_V2PUR,
 	KGSL_IOMMU_CTX_FSYNR0,
 	KGSL_IOMMU_CTX_FSYNR1,
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	KGSL_IOMMU_REG_MAX
 };
 
@@ -155,8 +165,11 @@ struct kgsl_iommu_unit {
  * IOMMU registers
  * @sync_lock_desc: GPU Memory descriptor for the memory containing the
  * spinlocks
+<<<<<<< HEAD
  * @sync_lock_offset: The page offset within a page at which the sync
  * variables are located
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  * @sync_lock_initialized: True if the sync_lock feature is enabled
  */
 struct kgsl_iommu {
@@ -169,7 +182,10 @@ struct kgsl_iommu {
 	struct kgsl_iommu_register_list *iommu_reg_list;
 	struct remote_iommu_petersons_spinlock *sync_lock_vars;
 	struct kgsl_memdesc sync_lock_desc;
+<<<<<<< HEAD
 	unsigned int sync_lock_offset;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	bool sync_lock_initialized;
 };
 

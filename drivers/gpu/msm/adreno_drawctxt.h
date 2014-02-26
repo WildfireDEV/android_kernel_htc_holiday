@@ -1,4 +1,8 @@
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.h
 /* Copyright (c) 2002,2007-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -56,6 +60,7 @@
 #define CTXT_FLAGS_SKIP_EOF             BIT(15)
 /* Context no fault tolerance */
 #define CTXT_FLAGS_NO_FAULT_TOLERANCE  BIT(16)
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.h
 
 /* Symbolic table for the adreno draw context type */
 #define ADRENO_DRAWCTXT_TYPES \
@@ -64,6 +69,8 @@
 	{ KGSL_CONTEXT_TYPE_CL, "CL" }, \
 	{ KGSL_CONTEXT_TYPE_C2D, "C2D" }, \
 	{ KGSL_CONTEXT_TYPE_RS, "RS" }
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.h
 
 struct kgsl_device;
 struct adreno_device;
@@ -100,11 +107,17 @@ struct adreno_context {
 	char pid_name[TASK_COMM_LEN];
 	unsigned int id;
 	unsigned int ib_gpu_time_used;
+<<<<<<< HEAD:drivers/gpu/msm/adreno_drawctxt.h
 	unsigned int timestamp;
 	uint32_t flags;
 	uint32_t pagefault;
 	unsigned long pagefault_ts;
 	unsigned int type;
+=======
+	uint32_t flags;
+	uint32_t pagefault;
+	unsigned long pagefault_ts;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/adreno_drawctxt.h
 	struct kgsl_pagetable *pagetable;
 	struct kgsl_memdesc gpustate;
 	unsigned int reg_restore[3];

@@ -19,6 +19,10 @@
 #include <linux/kref.h>
 #include <linux/ktime.h>
 #include <linux/list.h>
+<<<<<<< HEAD
+=======
+#include <linux/seq_file.h>
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #include <linux/spinlock.h>
 #include <linux/wait.h>
 
@@ -51,6 +55,7 @@ struct seq_file;
  * @pt_value_str:	fill str with the value of the sync_pt
  */
 struct sync_timeline_ops {
+<<<<<<< HEAD
         const char *driver_name;
 
         /* required */
@@ -64,6 +69,21 @@ struct sync_timeline_ops {
 
         /* optional */
         void (*free_pt)(struct sync_pt *sync_pt);
+=======
+	const char *driver_name;
+
+	/* required */
+	struct sync_pt *(*dup)(struct sync_pt *pt);
+
+	/* required */
+	int (*has_signaled)(struct sync_pt *pt);
+
+	/* required */
+	int (*compare)(struct sync_pt *a, struct sync_pt *b);
+
+	/* optional */
+	void (*free_pt)(struct sync_pt *sync_pt);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* optional */
 	void (*release_obj)(struct sync_timeline *sync_timeline);
@@ -101,6 +121,7 @@ struct sync_timeline_ops {
 struct sync_timeline {
 	struct kref		kref;
 	const struct sync_timeline_ops	*ops;
+<<<<<<< HEAD
 	char			name[32];
 
         /* protected by child_list_lock */
@@ -108,6 +129,15 @@ struct sync_timeline {
 
         struct list_head        child_list_head;
         spinlock_t              child_list_lock;
+=======
+	char			name[64];
+
+	/* protected by child_list_lock */
+	bool			destroyed;
+
+	struct list_head	child_list_head;
+	spinlock_t		child_list_lock;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	struct list_head	active_list_head;
 	spinlock_t		active_list_lock;
@@ -128,14 +158,24 @@ struct sync_timeline {
  *			  singaled or error.
  */
 struct sync_pt {
+<<<<<<< HEAD
         struct sync_timeline            *parent;
         struct list_head        child_list;
+=======
+	struct sync_timeline		*parent;
+	struct list_head	child_list;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	struct list_head	active_list;
 	struct list_head	signaled_list;
 
+<<<<<<< HEAD
         struct sync_fence       *fence;
         struct list_head        pt_list;
+=======
+	struct sync_fence	*fence;
+	struct list_head	pt_list;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* protected by parent->active_list_lock */
 	int			status;
@@ -162,12 +202,21 @@ struct sync_fence {
 	struct kref		kref;
 	char			name[32];
 
+<<<<<<< HEAD
         /* this list is immutable once the fence is created */
         struct list_head        pt_list_head;
 
         struct list_head        waiter_list_head;
         spinlock_t              waiter_list_lock; /* also protects status */
         int                     status;
+=======
+	/* this list is immutable once the fence is created */
+	struct list_head	pt_list_head;
+
+	struct list_head	waiter_list_head;
+	spinlock_t		waiter_list_lock; /* also protects status */
+	int			status;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	wait_queue_head_t	wq;
 
@@ -180,12 +229,21 @@ typedef void (*sync_callback_t)(struct sync_fence *fence,
 
 /**
  * struct sync_fence_waiter - metadata for asynchronous waiter on a fence
+<<<<<<< HEAD
  * @waiter_list:        membership in sync_fence.waiter_list_head
  * @callback:           function pointer to call when fence signals
  * @callback_data:      pointer to pass to @callback
  */
 struct sync_fence_waiter {
         struct list_head        waiter_list;
+=======
+ * @waiter_list:	membership in sync_fence.waiter_list_head
+ * @callback:		function pointer to call when fence signals
+ * @callback_data:	pointer to pass to @callback
+ */
+struct sync_fence_waiter {
+	struct list_head	waiter_list;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	sync_callback_t		callback;
 };
@@ -202,20 +260,34 @@ static inline void sync_fence_waiter_init(struct sync_fence_waiter *waiter,
 
 /**
  * sync_timeline_create() - creates a sync object
+<<<<<<< HEAD
  * @ops:        specifies the implemention ops for the object
  * @size:       size to allocate for this obj
  * @name:       sync_timeline name
+=======
+ * @ops:	specifies the implemention ops for the object
+ * @size:	size to allocate for this obj
+ * @name:	sync_timeline name
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Creates a new sync_timeline which will use the implemetation specified by
  * @ops.  @size bytes will be allocated allowing for implemntation specific
  * data to be kept after the generic sync_timeline stuct.
  */
 struct sync_timeline *sync_timeline_create(const struct sync_timeline_ops *ops,
+<<<<<<< HEAD
                                            int size, const char *name);
 
 /**
  * sync_timeline_destory() - destorys a sync object
  * @obj:        sync_timeline to destroy
+=======
+					   int size, const char *name);
+
+/**
+ * sync_timeline_destory() - destorys a sync object
+ * @obj:	sync_timeline to destroy
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * A sync implemntation should call this when the @obj is going away
  * (i.e. module unload.)  @obj won't actually be freed until all its childern
@@ -225,7 +297,11 @@ void sync_timeline_destroy(struct sync_timeline *obj);
 
 /**
  * sync_timeline_signal() - signal a status change on a sync_timeline
+<<<<<<< HEAD
  * @obj:        sync_timeline to signal
+=======
+ * @obj:	sync_timeline to signal
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * A sync implemntation should call this any time one of it's sync_pts
  * has signaled or has an error condition.
@@ -234,8 +310,13 @@ void sync_timeline_signal(struct sync_timeline *obj);
 
 /**
  * sync_pt_create() - creates a sync pt
+<<<<<<< HEAD
  * @parent:     sync_pt's parent sync_timeline
  * @size:       size to allocate for this pt
+=======
+ * @parent:	sync_pt's parent sync_timeline
+ * @size:	size to allocate for this pt
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Creates a new sync_pt as a chiled of @parent.  @size bytes will be
  * allocated allowing for implemntation specific data to be kept after
@@ -245,7 +326,11 @@ struct sync_pt *sync_pt_create(struct sync_timeline *parent, int size);
 
 /**
  * sync_pt_free() - frees a sync pt
+<<<<<<< HEAD
  * @pt:         sync_pt to free
+=======
+ * @pt:		sync_pt to free
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * This should only be called on sync_pts which have been created but
  * not added to a fence.
@@ -254,8 +339,13 @@ void sync_pt_free(struct sync_pt *pt);
 
 /**
  * sync_fence_create() - creates a sync fence
+<<<<<<< HEAD
  * @name:       name of fence to create
  * @pt:         sync_pt to add to the fence
+=======
+ * @name:	name of fence to create
+ * @pt:		sync_pt to add to the fence
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Creates a fence containg @pt.  Once this is called, the fence takes
  * ownership of @pt.
@@ -268,19 +358,33 @@ struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt);
 
 /**
  * sync_fence_merge() - merge two fences
+<<<<<<< HEAD
  * @name:       name of new fence
  * @a:          fence a
  * @b:          fence b
+=======
+ * @name:	name of new fence
+ * @a:		fence a
+ * @b:		fence b
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Creates a new fence which contains copies of all the sync_pts in both
  * @a and @b.  @a and @b remain valid, independent fences.
  */
 struct sync_fence *sync_fence_merge(const char *name,
+<<<<<<< HEAD
                                     struct sync_fence *a, struct sync_fence *b);
 
 /**
  * sync_fence_fdget() - get a fence from an fd
  * @fd:         fd referencing a fence
+=======
+				    struct sync_fence *a, struct sync_fence *b);
+
+/**
+ * sync_fence_fdget() - get a fence from an fd
+ * @fd:		fd referencing a fence
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Ensures @fd references a valid fence, increments the refcount of the backing
  * file, and returns the fence.
@@ -289,7 +393,11 @@ struct sync_fence *sync_fence_fdget(int fd);
 
 /**
  * sync_fence_put() - puts a refernnce of a sync fence
+<<<<<<< HEAD
  * @fence:      fence to put
+=======
+ * @fence:	fence to put
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Puts a reference on @fence.  If this is the last reference, the fence and
  * all it's sync_pts will be freed
@@ -298,8 +406,13 @@ void sync_fence_put(struct sync_fence *fence);
 
 /**
  * sync_fence_install() - installs a fence into a file descriptor
+<<<<<<< HEAD
  * @fence:      fence to instal
  * @fd:         file descriptor in which to install the fence
+=======
+ * @fence:	fence to instal
+ * @fd:		file descriptor in which to install the fence
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Installs @fence into @fd.  @fd's should be acquired through get_unused_fd().
  */
@@ -334,8 +447,13 @@ int sync_fence_cancel_async(struct sync_fence *fence,
 
 /**
  * sync_fence_wait() - wait on fence
+<<<<<<< HEAD
  * @fence:      fence to wait on
  * @tiemout:    timeout in ms
+=======
+ * @fence:	fence to wait on
+ * @tiemout:	timeout in ms
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * Wait for @fence to be signaled or have an error.  Waits indefinitely
  * if @timeout < 0
@@ -346,6 +464,7 @@ int sync_fence_wait(struct sync_fence *fence, long timeout);
 
 /**
  * struct sync_merge_data - data passed to merge ioctl
+<<<<<<< HEAD
  * @fd2:        file descriptor of second fence
  * @name:       name of new fence
  * @fence:      returns the fd of the new fence to userspace
@@ -354,6 +473,16 @@ struct sync_merge_data {
         __s32   fd2; /* fd of second fence */
         char    name[32]; /* name of new fence */
         __s32   fence; /* fd on newly created fence */
+=======
+ * @fd2:	file descriptor of second fence
+ * @name:	name of new fence
+ * @fence:	returns the fd of the new fence to userspace
+ */
+struct sync_merge_data {
+	__s32	fd2; /* fd of second fence */
+	char	name[32]; /* name of new fence */
+	__s32	fence; /* fd on newly created fence */
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 /**
@@ -408,7 +537,11 @@ struct sync_fence_info_data {
  * the sync_pts in both the calling fd and sync_merge_data.fd2.  Returns the
  * new fence's fd in sync_merge_data.fence
  */
+<<<<<<< HEAD
 #define SYNC_IOC_MERGE          _IOWR(SYNC_IOC_MAGIC, 1, struct sync_merge_data)
+=======
+#define SYNC_IOC_MERGE		_IOWR(SYNC_IOC_MAGIC, 1, struct sync_merge_data)
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 /**
  * DOC: SYNC_IOC_FENCE_INFO - get detailed information on a fence

@@ -28,7 +28,10 @@
 #include "kgsl_log.h"
 #include "kgsl_sharedmem.h"
 #include "adreno_pm4types.h"
+<<<<<<< HEAD
 #include "adreno.h"
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 static struct rchan	*chan;
 static struct dentry	*dir;
@@ -335,7 +338,11 @@ void kgsl_cffdump_init()
 		return;
 	}
 
+<<<<<<< HEAD
 	kgsl_cff_dump_enable = 0;
+=======
+	kgsl_cff_dump_enable = 1;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	spin_lock_init(&cffdump_lock);
 
@@ -357,6 +364,7 @@ void kgsl_cffdump_destroy()
 		debugfs_remove(dir);
 }
 
+<<<<<<< HEAD
 void kgsl_cffdump_open(struct kgsl_device *device)
 {
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
@@ -374,43 +382,68 @@ void kgsl_cffdump_open(struct kgsl_device *device)
 			kgsl_mmu_get_ptsize(&device->mmu),
 			adreno_dev->gmem_size);
 	}
+=======
+void kgsl_cffdump_open(enum kgsl_deviceid device_id)
+{
+	kgsl_cffdump_memory_base(device_id, KGSL_PAGETABLE_BASE,
+			kgsl_mmu_get_ptsize(), SZ_256K);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 void kgsl_cffdump_memory_base(enum kgsl_deviceid device_id, unsigned int base,
 			      unsigned int range, unsigned gmemsize)
 {
+<<<<<<< HEAD
 	if (!kgsl_cff_dump_enable)
 		return;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	cffdump_printline(device_id, CFF_OP_MEMORY_BASE, base,
 			range, gmemsize, 0, 0);
 }
 
 void kgsl_cffdump_hang(enum kgsl_deviceid device_id)
 {
+<<<<<<< HEAD
 	if (!kgsl_cff_dump_enable)
 		return;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	cffdump_printline(device_id, CFF_OP_HANG, 0, 0, 0, 0, 0);
 }
 
 void kgsl_cffdump_close(enum kgsl_deviceid device_id)
 {
+<<<<<<< HEAD
 	if (!kgsl_cff_dump_enable)
 		return;
 	cffdump_printline(device_id, CFF_OP_EOF, 0, 0, 0, 0, 0);
 }
 
 
+=======
+	cffdump_printline(device_id, CFF_OP_EOF, 0, 0, 0, 0, 0);
+}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 void kgsl_cffdump_user_event(unsigned int cff_opcode, unsigned int op1,
 		unsigned int op2, unsigned int op3,
 		unsigned int op4, unsigned int op5)
 {
+<<<<<<< HEAD
 	if (!kgsl_cff_dump_enable)
 		return;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	cffdump_printline(-1, cff_opcode, op1, op2, op3, op4, op5);
 }
 
 void kgsl_cffdump_syncmem(struct kgsl_device_private *dev_priv,
+<<<<<<< HEAD
 	struct kgsl_memdesc *memdesc, uint gpuaddr, uint sizebytes,
+=======
+	const struct kgsl_memdesc *memdesc, uint gpuaddr, uint sizebytes,
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	bool clean_cache)
 {
 	const void *src;
@@ -422,8 +455,15 @@ void kgsl_cffdump_syncmem(struct kgsl_device_private *dev_priv,
 
 	if (memdesc == NULL) {
 		struct kgsl_mem_entry *entry;
+<<<<<<< HEAD
 		entry = kgsl_sharedmem_find_region(dev_priv->process_priv,
 			gpuaddr, sizebytes);
+=======
+		spin_lock(&dev_priv->process_priv->mem_lock);
+		entry = kgsl_sharedmem_find_region(dev_priv->process_priv,
+			gpuaddr, sizebytes);
+		spin_unlock(&dev_priv->process_priv->mem_lock);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		if (entry == NULL) {
 			KGSL_CORE_ERR("did not find mapping "
 				"for gpuaddr: 0x%08x\n", gpuaddr);
@@ -543,7 +583,11 @@ static int subbuf_start_handler(struct rchan_buf *buf,
 }
 
 static struct dentry *create_buf_file_handler(const char *filename,
+<<<<<<< HEAD
 	struct dentry *parent, unsigned short mode, struct rchan_buf *buf,
+=======
+	struct dentry *parent, int mode, struct rchan_buf *buf,
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	int *is_global)
 {
 	return debugfs_create_file(filename, mode, parent, buf,

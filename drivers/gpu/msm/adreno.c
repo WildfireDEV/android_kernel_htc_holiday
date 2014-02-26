@@ -36,7 +36,10 @@
 #include "adreno_pm4types.h"
 
 #include "a2xx_reg.h"
+<<<<<<< HEAD
 #include "a3xx_reg.h"
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #define DRIVER_VERSION_MAJOR   3
 #define DRIVER_VERSION_MINOR   1
@@ -137,7 +140,10 @@ static struct adreno_device device_3d0 = {
 #define LONG_IB_DETECT_REG_INDEX_END 5
 
 unsigned int ft_detect_regs[] = {
+<<<<<<< HEAD
 	A3XX_RBBM_STATUS,
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	REG_CP_RB_RPTR,   /* LONG_IB_DETECT_REG_INDEX_START */
 	REG_CP_IB1_BASE,
 	REG_CP_IB1_BUFSZ,
@@ -205,6 +211,7 @@ static const struct {
 	{ ADRENO_REV_A225, 2, 2, ANY_ID, ANY_ID,
 		"a225_pm4.fw", "a225_pfp.fw", &adreno_a2xx_gpudev,
 		1536, 768, 3, SZ_512K, 0x225011, 0x225002 },
+<<<<<<< HEAD
 	/* A3XX doesn't use the pix_shader_start */
 	{ ADRENO_REV_A305, 3, 0, 5, ANY_ID,
 		"a300_pm4.fw", "a300_pfp.fw", &adreno_a3xx_gpudev,
@@ -525,6 +532,10 @@ int adreno_perfcounter_put(struct adreno_device *adreno_dev,
 	return -EINVAL;
 }
 
+=======
+};
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static irqreturn_t adreno_irq_handler(struct kgsl_device *device)
 {
 	irqreturn_t result;
@@ -569,6 +580,7 @@ static int adreno_setup_pt(struct kgsl_device *device,
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
 
+<<<<<<< HEAD
 	result = kgsl_mmu_map_global(pagetable, &rb->buffer_desc);
 	if (result)
 		goto error;
@@ -606,6 +618,30 @@ static int adreno_setup_pt(struct kgsl_device *device,
 unmap_setstate_desc:
 	kgsl_mmu_unmap(pagetable, &device->mmu.setstate_memory);
 
+=======
+	result = kgsl_mmu_map_global(pagetable, &rb->buffer_desc,
+				     GSL_PT_PAGE_RV);
+	if (result)
+		goto error;
+
+	result = kgsl_mmu_map_global(pagetable, &rb->memptrs_desc,
+				     GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+	if (result)
+		goto unmap_buffer_desc;
+
+	result = kgsl_mmu_map_global(pagetable, &device->memstore,
+				     GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+	if (result)
+		goto unmap_memptrs_desc;
+
+	result = kgsl_mmu_map_global(pagetable, &device->mmu.setstate_memory,
+				     GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+	if (result)
+		goto unmap_memstore_desc;
+
+	return result;
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 unmap_memstore_desc:
 	kgsl_mmu_unmap(pagetable, &device->memstore);
 
@@ -632,6 +668,7 @@ static void adreno_iommu_setstate(struct kgsl_device *device,
 	struct kgsl_context *context;
 	struct adreno_context *adreno_ctx = NULL;
 
+<<<<<<< HEAD
 	/*
 	 * If we're idle and we don't need to use the GPU to save context
 	 * state, use the CPU instead of the GPU to reprogram the
@@ -645,13 +682,24 @@ static void adreno_iommu_setstate(struct kgsl_device *device,
 
 	context = kgsl_context_get(device, context_id);
 
+=======
+	if (!adreno_dev->drawctxt_active)
+		return kgsl_mmu_device_setstate(&device->mmu, flags);
+	num_iommu_units = kgsl_mmu_get_num_iommu_units(&device->mmu);
+
+	context = idr_find(&device->context_idr, context_id);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (context == NULL)
 		return;
 	adreno_ctx = context->devctxt;
 
 	if (kgsl_mmu_enable_clk(&device->mmu,
 				KGSL_IOMMU_CONTEXT_USER))
+<<<<<<< HEAD
 		goto done;
+=======
+		return;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	cmds += __adreno_add_idle_indirect_cmds(cmds,
 		device->mmu.setstate_memory.gpuaddr +
@@ -669,10 +717,15 @@ static void adreno_iommu_setstate(struct kgsl_device *device,
 
 	cmds += adreno_add_idle_cmds(adreno_dev, cmds);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MSM_IOMMU
 	/* Acquire GPU-CPU sync Lock here */
 	cmds += kgsl_mmu_sync_lock(&device->mmu, cmds);
 #endif
+=======
+	/* Acquire GPU-CPU sync Lock here */
+	cmds += kgsl_mmu_sync_lock(&device->mmu, cmds);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	pt_val = kgsl_mmu_get_pt_base_addr(&device->mmu,
 					device->mmu.hwpagetable);
@@ -735,10 +788,15 @@ static void adreno_iommu_setstate(struct kgsl_device *device,
 		}
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_MSM_IOMMU
 	/* Release GPU-CPU sync Lock here */
 	cmds += kgsl_mmu_sync_unlock(&device->mmu, cmds);
 #endif
+=======
+	/* Release GPU-CPU sync Lock here */
+	cmds += kgsl_mmu_sync_unlock(&device->mmu, cmds);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	if (cpu_is_msm8960())
 		cmds += adreno_add_change_mh_phys_limit_cmds(cmds,
@@ -766,15 +824,22 @@ static void adreno_iommu_setstate(struct kgsl_device *device,
 			KGSL_CMD_FLAGS_PMODE,
 			&link[0], sizedwords);
 		kgsl_mmu_disable_clk_on_ts(&device->mmu,
+<<<<<<< HEAD
 				adreno_dev->ringbuffer.global_ts, true);
+=======
+		adreno_dev->ringbuffer.timestamp[KGSL_MEMSTORE_GLOBAL], true);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	if (sizedwords > (sizeof(link)/sizeof(unsigned int))) {
 		KGSL_DRV_ERR(device, "Temp command buffer overflow\n");
 		BUG();
 	}
+<<<<<<< HEAD
 done:
 	kgsl_context_put(context);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static void adreno_gpummu_setstate(struct kgsl_device *device,
@@ -802,7 +867,11 @@ static void adreno_gpummu_setstate(struct kgsl_device *device,
 	 * easier to filter out the mmu accesses from the dump
 	 */
 	if (!kgsl_cff_dump_enable && adreno_dev->drawctxt_active) {
+<<<<<<< HEAD
 		context = kgsl_context_get(device, context_id);
+=======
+		context = idr_find(&device->context_idr, context_id);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		if (context == NULL)
 			return;
 		adreno_ctx = context->devctxt;
@@ -882,8 +951,11 @@ static void adreno_gpummu_setstate(struct kgsl_device *device,
 		adreno_ringbuffer_issuecmds(device, adreno_ctx,
 					KGSL_CMD_FLAGS_PMODE,
 					&link[0], sizedwords);
+<<<<<<< HEAD
 
 		kgsl_context_put(context);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	} else {
 		kgsl_mmu_device_setstate(&device->mmu, flags);
 	}
@@ -901,6 +973,7 @@ static void adreno_setstate(struct kgsl_device *device,
 }
 
 static unsigned int
+<<<<<<< HEAD
 a3xx_getchipid(struct kgsl_device *device)
 {
 	struct kgsl_device_platform_data *pdata =
@@ -916,6 +989,8 @@ a3xx_getchipid(struct kgsl_device *device)
 }
 
 static unsigned int
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 a2xx_getchipid(struct kgsl_device *device)
 {
 	unsigned int chipid = 0;
@@ -962,6 +1037,7 @@ a2xx_getchipid(struct kgsl_device *device)
 static unsigned int
 adreno_getchipid(struct kgsl_device *device)
 {
+<<<<<<< HEAD
 	struct kgsl_device_platform_data *pdata =
 		kgsl_device_get_drvdata(device);
 
@@ -974,6 +1050,9 @@ adreno_getchipid(struct kgsl_device *device)
 		return a2xx_getchipid(device);
 	else
 		return a3xx_getchipid(device);
+=======
+	return a2xx_getchipid(device);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static inline bool _rev_match(unsigned int id, unsigned int entry)
@@ -1033,20 +1112,29 @@ static struct of_device_id adreno_match_table[] = {
 static inline int adreno_of_read_property(struct device_node *node,
 	const char *prop, unsigned int *ptr)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_OF
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	int ret = of_property_read_u32(node, prop, ptr);
 	if (ret)
 		KGSL_CORE_ERR("Unable to read '%s'\n", prop);
 	return ret;
+<<<<<<< HEAD
 #else
 	return 0;
 #endif
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static struct device_node *adreno_of_find_subnode(struct device_node *parent,
 	const char *name)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_OF
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct device_node *child;
 
 	for_each_child_of_node(parent, child) {
@@ -1055,15 +1143,21 @@ static struct device_node *adreno_of_find_subnode(struct device_node *parent,
 	}
 
 	return NULL;
+<<<<<<< HEAD
 #else
 	return 0;
 #endif
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static int adreno_of_get_pwrlevels(struct device_node *parent,
 	struct kgsl_device_platform_data *pdata)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_OF
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct device_node *node, *child;
 	int ret = -EINVAL;
 
@@ -1119,19 +1213,29 @@ static int adreno_of_get_pwrlevels(struct device_node *parent,
 	ret = 0;
 done:
 	return ret;
+<<<<<<< HEAD
 #else
 	return 0;
 #endif
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 }
 
 static struct msm_dcvs_core_info *adreno_of_get_dcvs(struct device_node *parent)
 {
+<<<<<<< HEAD
 	int ret = -EINVAL;
 #ifdef CONFIG_OF
 	struct device_node *node, *child;
 	struct msm_dcvs_core_info *info = NULL;
 	int count = 0;
+=======
+	struct device_node *node, *child;
+	struct msm_dcvs_core_info *info = NULL;
+	int count = 0;
+	int ret = -EINVAL;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	node = adreno_of_find_subnode(parent, "qcom,dcvs-core-info");
 	if (node == NULL)
@@ -1288,14 +1392,21 @@ err:
 		kfree(info->freq_tbl);
 
 	kfree(info);
+<<<<<<< HEAD
 #endif
+=======
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return ERR_PTR(ret);
 }
 
 static int adreno_of_get_iommu(struct device_node *parent,
 	struct kgsl_device_platform_data *pdata)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_OF
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct device_node *node, *child;
 	struct kgsl_device_iommu_data *data = NULL;
 	struct kgsl_iommu_ctx *ctxs = NULL;
@@ -1358,16 +1469,26 @@ static int adreno_of_get_iommu(struct device_node *parent,
 err:
 	kfree(ctxs);
 	kfree(data);
+<<<<<<< HEAD
 #endif
+=======
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return -EINVAL;
 }
 
 static int adreno_of_get_pdata(struct platform_device *pdev)
 {
+<<<<<<< HEAD
 	int ret = -EINVAL;
 #ifdef CONFIG_OF
 	struct kgsl_device_platform_data *pdata = NULL;
 	struct kgsl_device *device;
+=======
+	struct kgsl_device_platform_data *pdata = NULL;
+	struct kgsl_device *device;
+	int ret = -EINVAL;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	pdev->id_entry = adreno_id_table;
 
@@ -1451,7 +1572,10 @@ err:
 	}
 
 	kfree(pdata);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	return ret;
 }
@@ -1460,9 +1584,12 @@ err:
 static int
 adreno_ocmem_gmem_malloc(struct adreno_device *adreno_dev)
 {
+<<<<<<< HEAD
 	if (!adreno_is_a330(adreno_dev))
 		return 0;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* OCMEM is only needed once, do not support consective allocation */
 	if (adreno_dev->ocmem_hdl != NULL)
 		return 0;
@@ -1481,9 +1608,12 @@ adreno_ocmem_gmem_malloc(struct adreno_device *adreno_dev)
 static void
 adreno_ocmem_gmem_free(struct adreno_device *adreno_dev)
 {
+<<<<<<< HEAD
 	if (!adreno_is_a330(adreno_dev))
 		return;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (adreno_dev->ocmem_hdl == NULL)
 		return;
 
@@ -1531,8 +1661,12 @@ adreno_probe(struct platform_device *pdev)
 	if (status)
 		goto error_close_rb;
 
+<<<<<<< HEAD
 	//adreno_debugfs_init(device);
 	adreno_dev->on_resume_issueib = false;
+=======
+	adreno_debugfs_init(device);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	kgsl_pwrscale_init(device);
 	kgsl_pwrscale_attach_policy(device, ADRENO_DEFAULT_PWRSCALE_POLICY);
@@ -1558,8 +1692,11 @@ static int __devexit adreno_remove(struct platform_device *pdev)
 
 	kgsl_pwrscale_detach_policy(device);
 	kgsl_pwrscale_close(device);
+<<<<<<< HEAD
 	if (adreno_is_a305(adreno_dev))
 		kgsl_sharedmem_free(&adreno_dev->on_resume_cmd);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	adreno_ringbuffer_close(&adreno_dev->ringbuffer);
 	kgsl_device_platform_remove(device);
@@ -1567,10 +1704,17 @@ static int __devexit adreno_remove(struct platform_device *pdev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int adreno_init(struct kgsl_device *device)
 {
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
+=======
+static int adreno_start(struct kgsl_device *device, unsigned int init_ram)
+{
+	int status = -EINVAL;
+	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	if (KGSL_STATE_DUMP_AND_FT != device->state)
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_INIT);
@@ -1596,9 +1740,16 @@ static int adreno_init(struct kgsl_device *device)
 	if (adreno_dev->gpurev == ADRENO_REV_UNKNOWN) {
 		KGSL_DRV_ERR(device, "Unknown chip ID %x\n",
 			adreno_dev->chip_id);
+<<<<<<< HEAD
 		BUG_ON(1);
 	}
 
+=======
+		goto error_clk_off;
+	}
+
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/*
 	 * Check if firmware supports the sync lock PM4 packets needed
 	 * for IOMMUv1
@@ -1610,6 +1761,7 @@ static int adreno_init(struct kgsl_device *device)
 		adreno_gpulist[adreno_dev->gpulist_index].sync_lock_pfp_ver))
 		device->mmu.flags |= KGSL_MMU_FLAGS_IOMMU_SYNC;
 
+<<<<<<< HEAD
 	rb->global_ts = 0;
 
 	/* Assign correct RBBM status register to hang detect regs
@@ -1640,6 +1792,9 @@ static int adreno_start(struct kgsl_device *device)
 	kgsl_pwrctrl_enable(device);
 
 	/* Set up a2xx special case */
+=======
+	/* Set up the MMU */
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (adreno_is_a2xx(adreno_dev)) {
 		/*
 		 * the MH_CLNT_INTF_CTRL_CONFIG registers aren't present
@@ -1657,6 +1812,7 @@ static int adreno_start(struct kgsl_device *device)
 	 */
 	ft_detect_regs[0] = adreno_dev->gpudev->reg_rbbm_status;
 
+<<<<<<< HEAD
 	/* Add A3XX specific registers for hang detection */
 	if (adreno_is_a3xx(adreno_dev)) {
 		ft_detect_regs[6] = A3XX_RBBM_PERFCTR_SP_7_LO;
@@ -1679,6 +1835,8 @@ static int adreno_start(struct kgsl_device *device)
 			goto error_clk_off;
         }
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	status = kgsl_mmu_start(device);
 	if (status)
 		goto error_clk_off;
@@ -1695,6 +1853,7 @@ static int adreno_start(struct kgsl_device *device)
 	kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_ON);
 	device->ftbl->irqctrl(device, 1);
 
+<<<<<<< HEAD
 	status = adreno_ringbuffer_start(&adreno_dev->ringbuffer);
 	if (status)
 		goto error_irq_off;
@@ -1733,17 +1892,32 @@ static int adreno_start(struct kgsl_device *device)
 	return 0;
 
 error_irq_off:
+=======
+	status = adreno_ringbuffer_start(&adreno_dev->ringbuffer, init_ram);
+	if (status == 0) {
+		/* While fault tolerance is on we do not want timer to
+		 * fire and attempt to change any device state */
+		if (KGSL_STATE_DUMP_AND_FT != device->state)
+			mod_timer(&device->idle_timer, jiffies + FIRST_TIMEOUT);
+		return 0;
+	}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_OFF);
 
 error_mmu_off:
 	kgsl_mmu_stop(&device->mmu);
 
 error_clk_off:
+<<<<<<< HEAD
 	if (KGSL_STATE_DUMP_AND_FT != device->state) {
 		kgsl_pwrctrl_disable(device);
 		/* set the state back to original state */
 		kgsl_pwrctrl_set_state(device, state);
 	}
+=======
+	kgsl_pwrctrl_disable(device);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	return status;
 }
@@ -1767,8 +1941,11 @@ static int adreno_stop(struct kgsl_device *device)
 	/* Power down the device */
 	kgsl_pwrctrl_disable(device);
 
+<<<<<<< HEAD
 	kgsl_cffdump_close(device->id);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return 0;
 }
 
@@ -1783,8 +1960,11 @@ static void adreno_mark_context_status(struct kgsl_device *device,
 	 * since thats the guilty party, if fault tolerance failed then
 	 * mark all as guilty
 	 */
+<<<<<<< HEAD
 
 	rcu_read_lock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	while ((context = idr_get_next(&device->context_idr, &next))) {
 		struct adreno_context *adreno_context = context->devctxt;
 		if (ft_status) {
@@ -1803,22 +1983,34 @@ static void adreno_mark_context_status(struct kgsl_device *device,
 		}
 		next = next + 1;
 	}
+<<<<<<< HEAD
 	rcu_read_unlock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static void adreno_set_max_ts_for_bad_ctxs(struct kgsl_device *device)
 {
+<<<<<<< HEAD
+=======
+	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct kgsl_context *context;
 	struct adreno_context *temp_adreno_context;
 	int next = 0;
 
+<<<<<<< HEAD
 	rcu_read_lock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	while ((context = idr_get_next(&device->context_idr, &next))) {
 		temp_adreno_context = context->devctxt;
 		if (temp_adreno_context->flags & CTXT_FLAGS_GPU_HANG) {
 			kgsl_sharedmem_writel(&device->memstore,
 				KGSL_MEMSTORE_OFFSET(context->id,
 				soptimestamp),
+<<<<<<< HEAD
 				temp_adreno_context->timestamp);
 			kgsl_sharedmem_writel(&device->memstore,
 				KGSL_MEMSTORE_OFFSET(context->id,
@@ -1828,6 +2020,16 @@ static void adreno_set_max_ts_for_bad_ctxs(struct kgsl_device *device)
 		next = next + 1;
 	}
 	rcu_read_unlock();
+=======
+				rb->timestamp[context->id]);
+			kgsl_sharedmem_writel(&device->memstore,
+				KGSL_MEMSTORE_OFFSET(context->id,
+				eoptimestamp),
+				rb->timestamp[context->id]);
+		}
+		next = next + 1;
+	}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 static void adreno_destroy_ft_data(struct adreno_ft_data *ft_data)
@@ -2136,6 +2338,7 @@ _adreno_ft_restart_device(struct kgsl_device *device,
 		KGSL_FT_ERR(device, "Device stop failed\n");
 		return 1;
 	}
+<<<<<<< HEAD
 	
 	if (adreno_init(device)) {
 		KGSL_FT_ERR(device, "Device start failed\n");
@@ -2143,6 +2346,10 @@ _adreno_ft_restart_device(struct kgsl_device *device,
 	}
 
 	if (adreno_start(device)) {
+=======
+
+	if (adreno_start(device, true)) {
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		KGSL_FT_ERR(device, "Device start failed\n");
 		return 1;
 	}
@@ -2250,8 +2457,12 @@ _adreno_ft(struct kgsl_device *device,
 	struct adreno_context *last_active_ctx = adreno_dev->drawctxt_active;
 	unsigned int long_ib = 0;
 
+<<<<<<< HEAD
 	context = kgsl_context_get(device, ft_data->context_id);
 
+=======
+	context = idr_find(&device->context_idr, ft_data->context_id);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (context == NULL) {
 		KGSL_FT_ERR(device, "Last context unknown id:%d\n",
 			ft_data->context_id);
@@ -2428,6 +2639,7 @@ play_good_cmds:
 	/* ringbuffer now has data from the last valid context id,
 	 * so restore the active_ctx to the last valid context */
 	if (ft_data->last_valid_ctx_id) {
+<<<<<<< HEAD
 		struct kgsl_context *last_ctx = kgsl_context_get(device,
 			ft_data->last_valid_ctx_id);
 
@@ -2435,14 +2647,24 @@ play_good_cmds:
 			adreno_dev->drawctxt_active = last_ctx->devctxt;
 
 		kgsl_context_put(last_ctx);
+=======
+		struct kgsl_context *last_ctx =
+				idr_find(&device->context_idr,
+				ft_data->last_valid_ctx_id);
+		if (last_ctx)
+			adreno_dev->drawctxt_active = last_ctx->devctxt;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 done:
 	/* Turn off iommu clocks */
 	if (KGSL_MMU_TYPE_IOMMU == kgsl_mmu_get_mmutype())
 		kgsl_mmu_disable_clk_on_ts(&device->mmu, 0, false);
+<<<<<<< HEAD
 
 	kgsl_context_put(context);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return ret;
 }
 
@@ -2453,14 +2675,23 @@ adreno_ft(struct kgsl_device *device,
 	int ret = 0;
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
+<<<<<<< HEAD
+=======
+	unsigned int timestamp;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	KGSL_FT_INFO(device,
 	"Start Parameters: IB1: 0x%X, "
 	"Bad context_id: %u, global_eop: 0x%x\n",
 	ft_data->ib1, ft_data->context_id, ft_data->global_eop);
 
+<<<<<<< HEAD
 	KGSL_FT_INFO(device, "Last issued global timestamp: %x\n",
 			rb->global_ts);
+=======
+	timestamp = rb->timestamp[KGSL_MEMSTORE_GLOBAL];
+	KGSL_FT_INFO(device, "Last issued global timestamp: %x\n", timestamp);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* We may need to replay commands multiple times based on whether
 	 * multiple contexts hang the GPU */
@@ -2492,9 +2723,17 @@ adreno_ft(struct kgsl_device *device,
 			adreno_dev->drawctxt_active->pagetable;
 	else
 		device->mmu.hwpagetable = device->mmu.defaultpagetable;
+<<<<<<< HEAD
 	kgsl_sharedmem_writel(&device->memstore,
 			KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
 			eoptimestamp), rb->global_ts);
+=======
+	rb->timestamp[KGSL_MEMSTORE_GLOBAL] = timestamp;
+	kgsl_sharedmem_writel(&device->memstore,
+			KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
+			eoptimestamp),
+			rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* switch to NULL ctxt */
 	if (adreno_dev->drawctxt_active != NULL)
@@ -2724,7 +2963,14 @@ static int adreno_ringbuffer_drain(struct kgsl_device *device,
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
 	unsigned long wait;
+<<<<<<< HEAD
 	unsigned long timeout = jiffies + ADRENO_IDLE_TIMEOUT;
+=======
+	unsigned long timeout = jiffies + msecs_to_jiffies(ADRENO_IDLE_TIMEOUT);
+
+	if (!(rb->flags & KGSL_FLAGS_STARTED))
+		return 0;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/*
 	 * The first time into the loop, wait for 100 msecs and kick wptr again
@@ -2851,7 +3097,11 @@ static unsigned int adreno_isidle(struct kgsl_device *device)
 	if (device->state == KGSL_STATE_ACTIVE) {
 		/* Is the ring buffer is empty? */
 		GSL_RB_GET_READPTR(rb, &rb->rptr);
+<<<<<<< HEAD
 		if (rb->rptr == rb->wptr) {
+=======
+		if (!device->active_cnt && (rb->rptr == rb->wptr)) {
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 			/*
 			 * Are there interrupts pending? If so then pretend we
 			 * are not idle - this avoids the possiblity that we go
@@ -2881,8 +3131,11 @@ static int adreno_suspend_context(struct kgsl_device *device)
 		adreno_drawctxt_switch(adreno_dev, NULL, 0);
 		status = adreno_idle(device);
 	}
+<<<<<<< HEAD
 	if (adreno_is_a305(adreno_dev))
 		adreno_dev->on_resume_issueib = true;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	return status;
 }
@@ -2895,9 +3148,13 @@ struct kgsl_memdesc *adreno_find_ctxtmem(struct kgsl_device *device,
 	struct kgsl_context *context;
 	struct adreno_context *adreno_context = NULL;
 	int next = 0;
+<<<<<<< HEAD
 	struct kgsl_memdesc *desc = NULL;
 
 	rcu_read_lock();
+=======
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	while (1) {
 		context = idr_get_next(&device->context_idr, &next);
 		if (context == NULL)
@@ -2907,6 +3164,7 @@ struct kgsl_memdesc *adreno_find_ctxtmem(struct kgsl_device *device,
 
 		if (kgsl_mmu_pt_equal(&device->mmu, adreno_context->pagetable,
 					pt_base)) {
+<<<<<<< HEAD
 			desc = &adreno_context->gpustate;
 			if (kgsl_gpuaddr_in_memdesc(desc, gpuaddr, size))
 				break;
@@ -2920,6 +3178,22 @@ struct kgsl_memdesc *adreno_find_ctxtmem(struct kgsl_device *device,
 	}
 	rcu_read_unlock();
 	return desc;
+=======
+			struct kgsl_memdesc *desc;
+
+			desc = &adreno_context->gpustate;
+			if (kgsl_gpuaddr_in_memdesc(desc, gpuaddr, size))
+				return desc;
+
+			desc = &adreno_context->context_gmem_shadow.gmemshadow;
+			if (kgsl_gpuaddr_in_memdesc(desc, gpuaddr, size))
+				return desc;
+		}
+		next = next + 1;
+	}
+
+	return NULL;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 struct kgsl_memdesc *adreno_find_region(struct kgsl_device *device,
@@ -2988,8 +3262,11 @@ void adreno_regwrite(struct kgsl_device *device, unsigned int offsetwords,
 	if (!in_interrupt())
 		kgsl_pre_hwaccess(device);
 
+<<<<<<< HEAD
 	kgsl_trace_regwrite(device, offsetwords, value);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	kgsl_cffdump_regwrite(device->id, offsetwords << 2, value);
 	reg = (unsigned int *)(device->reg_virt + (offsetwords << 2));
 
@@ -3075,7 +3352,11 @@ static unsigned int adreno_check_hw_ts(struct kgsl_device *device,
 
 		if (context && device->state != KGSL_STATE_SLUMBER)
 			adreno_ringbuffer_issuecmds(device, context->devctxt,
+<<<<<<< HEAD
 					KGSL_CMD_FLAGS_GET_INT, NULL, 0);
+=======
+					KGSL_CMD_FLAGS_NONE, NULL, 0);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	return 0;
@@ -3312,7 +3593,11 @@ static int adreno_handle_hang(struct kgsl_device *device,
 	if (kgsl_check_timestamp(device, context, timestamp))
 		return 0;
 
+<<<<<<< HEAD
 	ts_issued = adreno_context_timestamp(context, &adreno_dev->ringbuffer);
+=======
+	ts_issued = adreno_dev->ringbuffer.timestamp[context_id];
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	adreno_regread(device, REG_CP_RB_RPTR, &rptr);
 	mb();
@@ -3343,7 +3628,11 @@ static int _check_pending_timestamp(struct kgsl_device *device,
 	if (context_id == KGSL_CONTEXT_INVALID)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	ts_issued = adreno_context_timestamp(context, &adreno_dev->ringbuffer);
+=======
+	ts_issued = adreno_dev->ringbuffer.timestamp[context_id];
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	if (timestamp_cmp(timestamp, ts_issued) <= 0)
 		return 0;
@@ -3387,6 +3676,11 @@ static int adreno_waittimestamp(struct kgsl_device *device,
 	int ts_compare = 1;
 	int io, ret = -ETIMEDOUT;
 
+<<<<<<< HEAD
+=======
+	/* Get out early if the context has already been destroyed */
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (context_id == KGSL_CONTEXT_INVALID) {
 		KGSL_DRV_WARN(device, "context was detached");
 		return -EINVAL;
@@ -3477,7 +3771,10 @@ static int adreno_waittimestamp(struct kgsl_device *device,
 		}
 		time_elapsed += wait;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		/* If user specified timestamps are being used, wait at least
 		 * KGSL_SYNCOBJ_SERVER_TIMEOUT msecs for the user driver to
 		 * issue a IB for a timestamp before checking to see if the
@@ -3499,7 +3796,10 @@ static int adreno_waittimestamp(struct kgsl_device *device,
 				 * Reset the invalid timestamp flag on a valid
 				 * wait
 				 */
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 				context->wait_on_invalid_ts = false;
 			}
 		}
@@ -3536,6 +3836,7 @@ static unsigned int adreno_readtimestamp(struct kgsl_device *device,
 	switch (type) {
 	case KGSL_TIMESTAMP_QUEUED: {
 		struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+<<<<<<< HEAD
 
 		timestamp = adreno_context_timestamp(context,
 				&adreno_dev->ringbuffer);
@@ -3544,6 +3845,15 @@ static unsigned int adreno_readtimestamp(struct kgsl_device *device,
 	case KGSL_TIMESTAMP_CONSUMED:
 		kgsl_sharedmem_readl(&device->memstore, &timestamp,
 			KGSL_MEMSTORE_OFFSET(context_id, soptimestamp));
+=======
+		struct adreno_ringbuffer *rb = &adreno_dev->ringbuffer;
+
+		timestamp = rb->timestamp[context_id];
+		break;
+	}
+	case KGSL_TIMESTAMP_CONSUMED:
+		adreno_regread(device, REG_CP_TIMESTAMP, &timestamp);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		break;
 	case KGSL_TIMESTAMP_RETIRED:
 		kgsl_sharedmem_readl(&device->memstore, &timestamp,
@@ -3559,6 +3869,7 @@ static unsigned int adreno_readtimestamp(struct kgsl_device *device,
 static long adreno_ioctl(struct kgsl_device_private *dev_priv,
 			      unsigned int cmd, void *data)
 {
+<<<<<<< HEAD
 	struct kgsl_device *device = dev_priv->device;
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	int result = 0;
@@ -3611,6 +3922,29 @@ static long adreno_ioctl(struct kgsl_device_private *dev_priv,
 			read->reads, read->count);
 		break;
 	}
+=======
+	int result = 0;
+	struct kgsl_drawctxt_set_bin_base_offset *binbase;
+	struct kgsl_context *context;
+
+	switch (cmd) {
+	case IOCTL_KGSL_DRAWCTXT_SET_BIN_BASE_OFFSET:
+		binbase = data;
+
+		context = kgsl_find_context(dev_priv, binbase->drawctxt_id);
+		if (context) {
+			adreno_drawctxt_set_bin_base_offset(
+				dev_priv->device, context, binbase->offset);
+		} else {
+			result = -EINVAL;
+			KGSL_DRV_ERR(dev_priv->device,
+				"invalid drawctxt drawctxt_id %d "
+				"device_id=%d\n",
+				binbase->drawctxt_id, dev_priv->device->id);
+		}
+		break;
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	default:
 		KGSL_DRV_INFO(dev_priv->device,
 			"invalid ioctl code %08x\n", cmd);
@@ -3632,6 +3966,7 @@ static void adreno_power_stats(struct kgsl_device *device,
 {
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
+<<<<<<< HEAD
 	unsigned int cycles = 0;
 
 	/*
@@ -3646,6 +3981,17 @@ static void adreno_power_stats(struct kgsl_device *device,
 	 * In order to calculate idle you have to have run the algorithm
 	 * at least once to get a start time.
 	 */
+=======
+	unsigned int cycles;
+
+	/* Get the busy cycles counted since the counter was last reset */
+	/* Calling this function also resets and restarts the counter */
+
+	cycles = adreno_dev->gpudev->busy_cycles(adreno_dev);
+
+	/* In order to calculate idle you have to have run the algorithm *
+	 * at least once to get a start time. */
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (pwr->time != 0) {
 		s64 tmp = ktime_to_us(ktime_get());
 		stats->total_time = tmp - pwr->time;
@@ -3692,7 +4038,10 @@ static const struct kgsl_functable adreno_functable = {
 	.idle = adreno_idle,
 	.isidle = adreno_isidle,
 	.suspend_context = adreno_suspend_context,
+<<<<<<< HEAD
 	.init = adreno_init,
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	.start = adreno_start,
 	.stop = adreno_stop,
 	.getproperty = adreno_getproperty,

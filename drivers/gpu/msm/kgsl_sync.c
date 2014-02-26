@@ -12,12 +12,18 @@
  */
 
 #include <linux/file.h>
+<<<<<<< HEAD
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
 #include <asm/current.h>
 
+=======
+#include <linux/slab.h>
+#include <linux/uaccess.h>
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #include "kgsl_sync.h"
 
 struct sync_pt *kgsl_sync_pt_create(struct sync_timeline *timeline,
@@ -86,12 +92,19 @@ struct kgsl_fence_event_priv {
  */
 
 static inline void kgsl_fence_event_cb(struct kgsl_device *device,
+<<<<<<< HEAD
 	void *priv, u32 context_id, u32 timestamp, u32 type)
 {
 	struct kgsl_fence_event_priv *ev = priv;
 
 	/* Signal time timeline for every event type */
 	kgsl_sync_timeline_signal(ev->context->timeline, timestamp);
+=======
+	void *priv, u32 context_id, u32 timestamp)
+{
+	struct kgsl_fence_event_priv *ev = priv;
+	kgsl_sync_timeline_signal(ev->context->timeline, ev->timestamp);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	kgsl_context_put(ev->context);
 	kfree(ev);
 }
@@ -123,6 +136,7 @@ int kgsl_add_fence_event(struct kgsl_device *device,
 	if (len != sizeof(priv))
 		return -EINVAL;
 
+<<<<<<< HEAD
 	event = kzalloc(sizeof(*event), GFP_KERNEL);
 	if (event == NULL)
 		return -ENOMEM;
@@ -136,6 +150,18 @@ int kgsl_add_fence_event(struct kgsl_device *device,
 
 	event->context = context;
 	event->timestamp = timestamp;
+=======
+	context = kgsl_find_context(owner, context_id);
+	if (context == NULL)
+		return -EINVAL;
+
+	event = kzalloc(sizeof(*event), GFP_KERNEL);
+	if (event == NULL)
+		return -ENOMEM;
+	event->context = context;
+	event->timestamp = timestamp;
+	kgsl_context_get(context);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	pt = kgsl_sync_pt_create(context->timeline, timestamp);
 	if (pt == NULL) {
@@ -166,10 +192,13 @@ int kgsl_add_fence_event(struct kgsl_device *device,
 		goto fail_copy_fd;
 	}
 
+<<<<<<< HEAD
 	/*
 	 * Hold the context ref-count for the event - it will get released in
 	 * the callback
 	 */
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	ret = kgsl_add_event(device, context_id, timestamp,
 			kgsl_fence_event_cb, event, owner);
 	if (ret)
@@ -191,6 +220,7 @@ fail_pt:
 	return ret;
 }
 
+<<<<<<< HEAD
 static unsigned int kgsl_sync_get_timestamp(
 	struct kgsl_sync_timeline *ktimeline, enum kgsl_timestamp_type type)
 {
@@ -229,20 +259,26 @@ static void kgsl_sync_timeline_release_obj(struct sync_timeline *sync_timeline)
 	 */
 	BUG_ON(sync_timeline && (sync_timeline->destroyed != true));
 }
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static const struct sync_timeline_ops kgsl_sync_timeline_ops = {
 	.driver_name = "kgsl-timeline",
 	.dup = kgsl_sync_pt_dup,
 	.has_signaled = kgsl_sync_pt_has_signaled,
 	.compare = kgsl_sync_pt_compare,
+<<<<<<< HEAD
 	.timeline_value_str = kgsl_sync_timeline_value_str,
 	.pt_value_str = kgsl_sync_pt_value_str,
 	.release_obj = kgsl_sync_timeline_release_obj,
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 int kgsl_sync_timeline_create(struct kgsl_context *context)
 {
 	struct kgsl_sync_timeline *ktimeline;
 
+<<<<<<< HEAD
 	/* Generate a name which includes the thread name, thread id, process
 	 * name, process id, and context id. This makes it possible to
 	 * identify the context of a timeline in the sync dump. */
@@ -255,13 +291,20 @@ int kgsl_sync_timeline_create(struct kgsl_context *context)
 
 	context->timeline = sync_timeline_create(&kgsl_sync_timeline_ops,
 		(int) sizeof(struct kgsl_sync_timeline), ktimeline_name);
+=======
+	context->timeline = sync_timeline_create(&kgsl_sync_timeline_ops,
+		(int) sizeof(struct kgsl_sync_timeline), "kgsl-timeline");
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (context->timeline == NULL)
 		return -EINVAL;
 
 	ktimeline = (struct kgsl_sync_timeline *) context->timeline;
 	ktimeline->last_timestamp = 0;
+<<<<<<< HEAD
 	ktimeline->device = context->dev_priv->device;
 	ktimeline->context_id = context->id;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	return 0;
 }

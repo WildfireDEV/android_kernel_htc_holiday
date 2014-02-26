@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,7 +15,10 @@
  *
  */
 #include <linux/types.h>
+<<<<<<< HEAD
 #include <linux/delay.h>
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #include <linux/device.h>
 #include <linux/spinlock.h>
 #include <linux/genalloc.h>
@@ -32,7 +39,10 @@
 #include "adreno.h"
 #include "kgsl_trace.h"
 #include "z180.h"
+<<<<<<< HEAD
 #include "kgsl_cffdump.h"
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 
 static struct kgsl_iommu_register_list kgsl_iommuv1_reg[KGSL_IOMMU_REG_MAX] = {
@@ -42,10 +52,13 @@ static struct kgsl_iommu_register_list kgsl_iommuv1_reg[KGSL_IOMMU_REG_MAX] = {
 	{ 0x20, 0, 0 },				/* FSR */
 	{ 0x800, 0, 0 },			/* TLBIALL */
 	{ 0x820, 0, 0 },			/* RESUME */
+<<<<<<< HEAD
 	{ 0x03C, 0, 0 },			/* TLBLKCR */
 	{ 0x818, 0, 0 },			/* V2PUR */
 	{ 0x2C, 0, 0 },                         /* FSYNR0 */
 	{ 0x2C, 0, 0 },                         /* FSYNR0 */
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 static struct kgsl_iommu_register_list kgsl_iommuv2_reg[KGSL_IOMMU_REG_MAX] = {
@@ -54,15 +67,20 @@ static struct kgsl_iommu_register_list kgsl_iommuv2_reg[KGSL_IOMMU_REG_MAX] = {
 	{ 0x28, 0x00FFFFFF, 14 },		/* TTBR1 */
 	{ 0x58, 0, 0 },				/* FSR */
 	{ 0x618, 0, 0 },			/* TLBIALL */
+<<<<<<< HEAD
 	{ 0x008, 0, 0 },			/* RESUME */
 	{ 0, 0, 0 },				/* TLBLKCR */
 	{ 0, 0, 0 },				/* V2PUR */
 	{ 0x68, 0, 0 },				/* FSYNR0 */
 	{ 0x6C, 0, 0 }				/* FSYNR1 */
+=======
+	{ 0x008, 0, 0 }				/* RESUME */
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 struct remote_iommu_petersons_spinlock kgsl_iommu_sync_lock_vars;
 
+<<<<<<< HEAD
 /*
  * One page allocation for a guard region to protect against over-zealous
  * GPU pre-fetch
@@ -70,6 +88,8 @@ struct remote_iommu_petersons_spinlock kgsl_iommu_sync_lock_vars;
 
 static struct page *kgsl_guard_page;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static int get_iommu_unit(struct device *dev, struct kgsl_mmu **mmu_out,
 			struct kgsl_iommu_unit **iommu_unit_out)
 {
@@ -117,6 +137,7 @@ static struct kgsl_iommu_device *get_iommu_device(struct kgsl_iommu_unit *unit,
 	return NULL;
 }
 
+<<<<<<< HEAD
 /* These functions help find the nearest allocated memory entries on either side
  * of a faulting address. If we know the nearby allocations memory we can
  * get a better determination of what we think should have been located in the
@@ -281,6 +302,8 @@ static void _check_if_freed(struct kgsl_iommu_device *iommu_dev,
 	mutex_unlock(&kgsl_driver.memfree_hist_mutex);
 }
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	struct device *dev, unsigned long addr, int flags)
 {
@@ -297,10 +320,13 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	unsigned int curr_global_ts = 0;
 	static struct adreno_context *curr_context;
 	static struct kgsl_context *context;
+<<<<<<< HEAD
 	unsigned int pid;
 	unsigned int fsynr0, fsynr1;
 	int write;
 	struct _mem_entry prev, next;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	ret = get_iommu_unit(dev, &mmu, &iommu_unit);
 	if (ret)
@@ -320,6 +346,7 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 
 	fsr = KGSL_IOMMU_GET_CTX_REG(iommu, iommu_unit,
 		iommu_dev->ctx_id, FSR);
+<<<<<<< HEAD
 	fsynr0 = KGSL_IOMMU_GET_CTX_REG(iommu, iommu_unit,
 		iommu_dev->ctx_id, FSYNR0);
 	fsynr1 = KGSL_IOMMU_GET_CTX_REG(iommu, iommu_unit,
@@ -331,10 +358,13 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	else
 		write = ((fsynr0 & (KGSL_IOMMU_V1_FSYNR0_WNR_MASK <<
 			KGSL_IOMMU_V1_FSYNR0_WNR_SHIFT)) ? 1 : 0);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	if (adreno_dev->ft_pf_policy & KGSL_FT_PAGEFAULT_LOG_ONE_PER_PAGE)
 		no_page_fault_log = kgsl_mmu_log_fault_addr(mmu, ptbase, addr);
 
+<<<<<<< HEAD
 	pid = kgsl_mmu_get_ptname_from_ptbase(mmu, ptbase);
 	if (!no_page_fault_log) {
 		KGSL_MEM_CRIT(iommu_dev->kgsldev,
@@ -363,6 +393,16 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	else
 		KGSL_LOG_DUMP(iommu_dev->kgsldev, "*EMPTY*\n");
 
+=======
+	if (!no_page_fault_log) {
+		KGSL_MEM_CRIT(iommu_dev->kgsldev,
+			"GPU PAGE FAULT: addr = %lX pid = %d\n",
+			addr, kgsl_mmu_get_ptname_from_ptbase(mmu, ptbase));
+		KGSL_MEM_CRIT(iommu_dev->kgsldev, "context = %d FSR = %X\n",
+			iommu_dev->ctx_id, fsr);
+	}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	mmu->fault = 1;
 	iommu_dev->fault = 1;
 
@@ -383,8 +423,12 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	curr_context->pagefault_ts = curr_global_ts;
 
 	trace_kgsl_mmu_pagefault(iommu_dev->kgsldev, addr,
+<<<<<<< HEAD
 			kgsl_mmu_get_ptname_from_ptbase(mmu, ptbase),
 				write ? "write" : "read");
+=======
+			kgsl_mmu_get_ptname_from_ptbase(mmu, ptbase), 0);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/*
 	 * We do not want the h/w to resume fetching data from an iommu unit
@@ -441,8 +485,12 @@ static void kgsl_iommu_disable_clk(struct kgsl_mmu *mmu)
  * Return - void
  */
 static void kgsl_iommu_clk_disable_event(struct kgsl_device *device, void *data,
+<<<<<<< HEAD
 					unsigned int id, unsigned int ts,
 					u32 type)
+=======
+					unsigned int id, unsigned int ts)
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 {
 	struct kgsl_mmu *mmu = data;
 	struct kgsl_iommu *iommu = mmu->priv;
@@ -800,6 +848,7 @@ static int _get_iommu_ctxs(struct kgsl_mmu *mmu,
 
 	return 0;
 }
+<<<<<<< HEAD
 /*
  * kgsl_iommu_start_sync_lock - Initialize some variables during MMU start up
  * for GPU CPU synchronization
@@ -840,6 +889,8 @@ static int kgsl_iommu_start_sync_lock(struct kgsl_mmu *mmu)
 
 	return 0;
 }
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 /*
  * kgsl_get_sync_lock - Init Sync Lock between GPU and CPU
@@ -849,6 +900,7 @@ static int kgsl_iommu_start_sync_lock(struct kgsl_mmu *mmu)
  */
 static int kgsl_iommu_init_sync_lock(struct kgsl_mmu *mmu)
 {
+<<<<<<< HEAD
 	struct kgsl_iommu *iommu = mmu->priv;
 	int status = 0;
 	uint32_t lock_phy_addr = 0;
@@ -874,6 +926,23 @@ static int kgsl_iommu_init_sync_lock(struct kgsl_mmu *mmu)
 	if (iommu->sync_lock_initialized)
 		return status;
 
+=======
+	struct kgsl_iommu *iommu = mmu->device->mmu.priv;
+	int status = 0;
+	struct kgsl_pagetable *pagetable = NULL;
+	uint32_t lock_gpu_addr = 0;
+	uint32_t lock_phy_addr = 0;
+	uint32_t page_offset = 0;
+
+	iommu->sync_lock_initialized = 0;
+
+	if (!(mmu->flags & KGSL_MMU_FLAGS_IOMMU_SYNC)) {
+		KGSL_DRV_ERR(mmu->device,
+		"The GPU microcode does not support IOMMUv1 sync opcodes\n");
+		return -ENXIO;
+	}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* Get the physical address of the Lock variables */
 	lock_phy_addr = (msm_iommu_lock_initialize()
 			- MSM_SHARED_RAM_BASE + msm_shared_ram_phys);
@@ -888,7 +957,10 @@ static int kgsl_iommu_init_sync_lock(struct kgsl_mmu *mmu)
 	page_offset = (lock_phy_addr & (PAGE_SIZE - 1));
 	lock_phy_addr = (lock_phy_addr & ~(PAGE_SIZE - 1));
 	iommu->sync_lock_desc.physaddr = (unsigned int)lock_phy_addr;
+<<<<<<< HEAD
 	iommu->sync_lock_offset = page_offset;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	iommu->sync_lock_desc.size =
 				PAGE_ALIGN(sizeof(kgsl_iommu_sync_lock_vars));
@@ -899,6 +971,37 @@ static int kgsl_iommu_init_sync_lock(struct kgsl_mmu *mmu)
 	if (status)
 		return status;
 
+<<<<<<< HEAD
+=======
+	/* Map Lock variables to GPU pagetable */
+	iommu->sync_lock_desc.priv |= KGSL_MEMDESC_GLOBAL;
+
+	pagetable = mmu->priv_bank_table ? mmu->priv_bank_table :
+				mmu->defaultpagetable;
+
+	status = kgsl_mmu_map(pagetable, &iommu->sync_lock_desc,
+				     GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+
+	if (status) {
+		kgsl_mmu_unmap(pagetable, &iommu->sync_lock_desc);
+		iommu->sync_lock_desc.priv &= ~KGSL_MEMDESC_GLOBAL;
+		return status;
+	}
+
+	/* Store Lock variables GPU address  */
+	lock_gpu_addr = (iommu->sync_lock_desc.gpuaddr + page_offset);
+
+	kgsl_iommu_sync_lock_vars.flag[PROC_APPS] = (lock_gpu_addr +
+		(offsetof(struct remote_iommu_petersons_spinlock,
+			flag[PROC_APPS])));
+	kgsl_iommu_sync_lock_vars.flag[PROC_GPU] = (lock_gpu_addr +
+		(offsetof(struct remote_iommu_petersons_spinlock,
+			flag[PROC_GPU])));
+	kgsl_iommu_sync_lock_vars.turn = (lock_gpu_addr +
+		(offsetof(struct remote_iommu_petersons_spinlock, turn)));
+
+	iommu->sync_lock_vars = &kgsl_iommu_sync_lock_vars;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* Flag Sync Lock is Initialized  */
 	iommu->sync_lock_initialized = 1;
@@ -1158,6 +1261,7 @@ static void kgsl_iommu_setstate(struct kgsl_mmu *mmu,
 	}
 }
 
+<<<<<<< HEAD
 /*
  * kgsl_iommu_setup_regs - map iommu registers into a pagetable
  * @mmu: Pointer to mmu structure
@@ -1228,6 +1332,8 @@ static void kgsl_iommu_cleanup_regs(struct kgsl_mmu *mmu,
 }
 
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static int kgsl_iommu_init(struct kgsl_mmu *mmu)
 {
 	/*
@@ -1253,10 +1359,13 @@ static int kgsl_iommu_init(struct kgsl_mmu *mmu)
 	if (status)
 		goto done;
 
+<<<<<<< HEAD
 	status = kgsl_iommu_init_sync_lock(mmu);
 	if (status)
 		goto done;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	iommu->iommu_reg_list = kgsl_iommuv1_reg;
 	iommu->ctx_offset = KGSL_IOMMU_CTX_OFFSET_V1;
 
@@ -1274,6 +1383,7 @@ static int kgsl_iommu_init(struct kgsl_mmu *mmu)
 				KGSL_IOMMU_SETSTATE_NOP_OFFSET,
 				cp_nop_packet(1));
 
+<<<<<<< HEAD
 	if (cpu_is_msm8960()) {
 		/*
 		 * 8960 doesn't have a second context bank, so the IOMMU
@@ -1292,6 +1402,8 @@ static int kgsl_iommu_init(struct kgsl_mmu *mmu)
 		}
 	}
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	dev_info(mmu->device->dev, "|%s| MMU type set for device is IOMMU\n",
 			__func__);
 done:
@@ -1314,6 +1426,12 @@ done:
 static int kgsl_iommu_setup_defaultpagetable(struct kgsl_mmu *mmu)
 {
 	int status = 0;
+<<<<<<< HEAD
+=======
+	int i = 0;
+	struct kgsl_iommu *iommu = mmu->priv;
+	struct kgsl_pagetable *pagetable = NULL;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* If chip is not 8960 then we use the 2nd context bank for pagetable
 	 * switching on the 3D side for which a separate table is allocated */
@@ -1324,9 +1442,12 @@ static int kgsl_iommu_setup_defaultpagetable(struct kgsl_mmu *mmu)
 			status = -ENOMEM;
 			goto err;
 		}
+<<<<<<< HEAD
 		status = kgsl_iommu_setup_regs(mmu, mmu->priv_bank_table);
 		if (status)
 			goto err;
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 	mmu->defaultpagetable = kgsl_mmu_getpagetable(KGSL_MMU_GLOBAL_PT);
 	/* Return error if the default pagetable doesn't exist */
@@ -1334,10 +1455,38 @@ static int kgsl_iommu_setup_defaultpagetable(struct kgsl_mmu *mmu)
 		status = -ENOMEM;
 		goto err;
 	}
+<<<<<<< HEAD
 	return status;
 err:
 	if (mmu->priv_bank_table) {
 		kgsl_iommu_cleanup_regs(mmu, mmu->priv_bank_table);
+=======
+	pagetable = mmu->priv_bank_table ? mmu->priv_bank_table :
+				mmu->defaultpagetable;
+	/* Map the IOMMU regsiters to only defaultpagetable */
+	if (msm_soc_version_supports_iommu_v1()) {
+		for (i = 0; i < iommu->unit_count; i++) {
+			iommu->iommu_units[i].reg_map.priv |=
+						KGSL_MEMDESC_GLOBAL;
+			status = kgsl_mmu_map(pagetable,
+				&(iommu->iommu_units[i].reg_map),
+				GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+			if (status) {
+				iommu->iommu_units[i].reg_map.priv &=
+							~KGSL_MEMDESC_GLOBAL;
+				goto err;
+			}
+		}
+	}
+	return status;
+err:
+	for (i--; i >= 0; i--) {
+		kgsl_mmu_unmap(pagetable,
+				&(iommu->iommu_units[i].reg_map));
+		iommu->iommu_units[i].reg_map.priv &= ~KGSL_MEMDESC_GLOBAL;
+	}
+	if (mmu->priv_bank_table) {
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		kgsl_mmu_putpagetable(mmu->priv_bank_table);
 		mmu->priv_bank_table = NULL;
 	}
@@ -1348,6 +1497,7 @@ err:
 	return status;
 }
 
+<<<<<<< HEAD
 /*
  * kgsl_iommu_lock_rb_in_tlb - Allocates tlb entries and locks the
  * virtual to physical address translation of ringbuffer for 3D
@@ -1456,6 +1606,11 @@ static void kgsl_iommu_lock_rb_in_tlb(struct kgsl_mmu *mmu)
 
 static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 {
+=======
+static int kgsl_iommu_start(struct kgsl_mmu *mmu)
+{
+	struct kgsl_device *device = mmu->device;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	int status;
 	struct kgsl_iommu *iommu = mmu->priv;
 	int i, j;
@@ -1467,6 +1622,7 @@ static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 		status = kgsl_iommu_setup_defaultpagetable(mmu);
 		if (status)
 			return -ENOMEM;
+<<<<<<< HEAD
 	}
 
 	status = kgsl_iommu_start_sync_lock(mmu);
@@ -1483,6 +1639,25 @@ static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 
 		kgsl_regwrite(mmu->device, MH_MMU_MPU_END,
 			mh->mpu_base + mh->mpu_range);
+=======
+
+		/* Initialize the sync lock between GPU and CPU */
+		if (msm_soc_version_supports_iommu_v1() &&
+			(device->id == KGSL_DEVICE_3D0))
+				kgsl_iommu_init_sync_lock(mmu);
+	}
+
+	/* We use the GPU MMU to control access to IOMMU registers on 8960 with
+	 * a225, hence we still keep the MMU active on 8960 */
+	if (cpu_is_msm8960()) {
+		struct kgsl_mh *mh = &(mmu->device->mh);
+		kgsl_regwrite(mmu->device, MH_MMU_CONFIG, 0x00000001);
+		kgsl_regwrite(mmu->device, MH_MMU_MPU_END,
+			mh->mpu_base +
+			iommu->iommu_units[0].reg_map.gpuaddr);
+	} else {
+		kgsl_regwrite(mmu->device, MH_MMU_CONFIG, 0x00000000);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	mmu->hwpagetable = mmu->defaultpagetable;
@@ -1507,7 +1682,10 @@ static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 	 * changing pagetables we can use this lsb value of the pagetable w/o
 	 * having to read it again
 	 */
+<<<<<<< HEAD
 	msm_iommu_lock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	for (i = 0; i < iommu->unit_count; i++) {
 		struct kgsl_iommu_unit *iommu_unit = &iommu->iommu_units[i];
 		for (j = 0; j < iommu_unit->dev_count; j++) {
@@ -1518,6 +1696,7 @@ static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 						TTBR0));
 		}
 	}
+<<<<<<< HEAD
 	kgsl_iommu_lock_rb_in_tlb(mmu);
 	msm_iommu_unlock();
 
@@ -1525,6 +1704,8 @@ static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 	kgsl_cffdump_setmem(mmu->setstate_memory.gpuaddr +
 				KGSL_IOMMU_SETSTATE_NOP_OFFSET,
 				cp_nop_packet(1), sizeof(unsigned int));
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	kgsl_iommu_disable_clk_on_ts(mmu, 0, false);
 	mmu->flags |= KGSL_FLAGS_STARTED;
@@ -1543,7 +1724,11 @@ kgsl_iommu_unmap(void *mmu_specific_pt,
 		unsigned int *tlb_flags)
 {
 	int ret;
+<<<<<<< HEAD
 	unsigned int range = memdesc->size;
+=======
+	unsigned int range = kgsl_sg_size(memdesc->sg, memdesc->sglen);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct kgsl_iommu_pt *iommu_pt = mmu_specific_pt;
 
 	/* All GPU addresses as assigned are page aligned, but some
@@ -1555,21 +1740,34 @@ kgsl_iommu_unmap(void *mmu_specific_pt,
 	if (range == 0 || gpuaddr == 0)
 		return 0;
 
+<<<<<<< HEAD
 	if (kgsl_memdesc_has_guard_page(memdesc))
 		range += PAGE_SIZE;
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	ret = iommu_unmap_range(iommu_pt->domain, gpuaddr, range);
 	if (ret)
 		KGSL_CORE_ERR("iommu_unmap_range(%p, %x, %d) failed "
 			"with err: %d\n", iommu_pt->domain, gpuaddr,
 			range, ret);
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/*
 	 * Flushing only required if per process pagetables are used. With
 	 * global case, flushing will happen inside iommu_map function
 	 */
+<<<<<<< HEAD
 	if (!ret && kgsl_mmu_is_perprocess())
 		*tlb_flags = UINT_MAX;
+=======
+	if (!ret && msm_soc_version_supports_iommu_v1())
+		*tlb_flags = UINT_MAX;
+#endif
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return 0;
 }
 
@@ -1582,6 +1780,7 @@ kgsl_iommu_map(void *mmu_specific_pt,
 	int ret;
 	unsigned int iommu_virt_addr;
 	struct kgsl_iommu_pt *iommu_pt = mmu_specific_pt;
+<<<<<<< HEAD
 	int size = memdesc->size;
 
 	BUG_ON(NULL == iommu_pt);
@@ -1611,6 +1810,25 @@ kgsl_iommu_map(void *mmu_specific_pt,
 					  size);
 		}
 	}
+=======
+	int size = kgsl_sg_size(memdesc->sg, memdesc->sglen);
+
+	BUG_ON(NULL == iommu_pt);
+
+
+	iommu_virt_addr = memdesc->gpuaddr;
+
+	ret = iommu_map_range(iommu_pt->domain, iommu_virt_addr, memdesc->sg,
+				size, (IOMMU_READ | IOMMU_WRITE));
+	if (ret) {
+		KGSL_CORE_ERR("iommu_map_range(%p, %x, %p, %d, %d) "
+				"failed with err: %d\n", iommu_pt->domain,
+				iommu_virt_addr, memdesc->sg, size,
+				(IOMMU_READ | IOMMU_WRITE), ret);
+		return ret;
+	}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return ret;
 }
 
@@ -1623,6 +1841,10 @@ static void kgsl_iommu_stop(struct kgsl_mmu *mmu)
 	 *
 	 *  call this with the global lock held
 	 */
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	if (mmu->flags & KGSL_FLAGS_STARTED) {
 		/* detach iommu attachment */
 		kgsl_detach_pagetable_iommu_domain(mmu);
@@ -1637,12 +1859,18 @@ static void kgsl_iommu_stop(struct kgsl_mmu *mmu)
 				for (j = 0; j < iommu_unit->dev_count; j++) {
 					if (iommu_unit->dev[j].fault) {
 						kgsl_iommu_enable_clk(mmu, j);
+<<<<<<< HEAD
 						msm_iommu_lock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 						KGSL_IOMMU_SET_CTX_REG(iommu,
 						iommu_unit,
 						iommu_unit->dev[j].ctx_id,
 						RESUME, 1);
+<<<<<<< HEAD
 						msm_iommu_unlock();
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 						iommu_unit->dev[j].fault = 0;
 					}
 				}
@@ -1660,6 +1888,7 @@ static int kgsl_iommu_close(struct kgsl_mmu *mmu)
 {
 	struct kgsl_iommu *iommu = mmu->priv;
 	int i;
+<<<<<<< HEAD
 
 	if (mmu->priv_bank_table != NULL) {
 		kgsl_iommu_cleanup_regs(mmu, mmu->priv_bank_table);
@@ -1689,6 +1918,26 @@ static int kgsl_iommu_close(struct kgsl_mmu *mmu)
 		kgsl_guard_page = NULL;
 	}
 
+=======
+	for (i = 0; i < iommu->unit_count; i++) {
+		struct kgsl_pagetable *pagetable = (mmu->priv_bank_table ?
+			mmu->priv_bank_table : mmu->defaultpagetable);
+		if (iommu->iommu_units[i].reg_map.gpuaddr)
+			kgsl_mmu_unmap(pagetable,
+			&(iommu->iommu_units[i].reg_map));
+		if (iommu->iommu_units[i].reg_map.hostptr)
+			iounmap(iommu->iommu_units[i].reg_map.hostptr);
+		kgsl_sg_free(iommu->iommu_units[i].reg_map.sg,
+				iommu->iommu_units[i].reg_map.sglen);
+	}
+
+	if (mmu->priv_bank_table)
+		kgsl_mmu_putpagetable(mmu->priv_bank_table);
+	if (mmu->defaultpagetable)
+		kgsl_mmu_putpagetable(mmu->defaultpagetable);
+	kfree(iommu);
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return 0;
 }
 
@@ -1831,9 +2080,12 @@ struct kgsl_mmu_ops iommu_ops = {
 	.mmu_get_pt_base_addr = kgsl_iommu_get_pt_base_addr,
 	.mmu_sync_lock = kgsl_iommu_sync_lock,
 	.mmu_sync_unlock = kgsl_iommu_sync_unlock,
+<<<<<<< HEAD
 	/* These callbacks will be set on some chipsets */
 	.mmu_setup_pt = NULL,
 	.mmu_cleanup_pt = NULL,
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 struct kgsl_mmu_pt_ops iommu_pt_ops = {

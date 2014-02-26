@@ -21,7 +21,7 @@
 #define KGSL_CLK_MEM_IFACE 0x00000010
 #define KGSL_CLK_AXI	0x00000020
 
-#define KGSL_MAX_PWRLEVELS 10 //Note: the maximum number of available GPU frequencies we can use is 2 less than this number
+#define KGSL_MAX_PWRLEVELS 7
 
 #define KGSL_CONVERT_TO_MBPS(val) \
 	(val*1000*1000U)

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,7 +21,10 @@
 #include "adreno.h"
 #include "adreno_pm4types.h"
 #include "a2xx_reg.h"
+<<<<<<< HEAD
 #include "a3xx_reg.h"
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 /* Number of dwords of ringbuffer history to record */
 #define NUM_DWORDS_OF_RINGBUFFER_HISTORY 100
@@ -162,12 +169,15 @@ static unsigned int sp_vs_pvt_mem_addr;
 static unsigned int sp_fs_pvt_mem_addr;
 
 /*
+<<<<<<< HEAD
  * Cached value of SP_VS_OBJ_START_REG and SP_FS_OBJ_START_REG.
  */
 static unsigned int sp_vs_obj_start_reg;
 static unsigned int sp_fs_obj_start_reg;
 
 /*
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  * Each load state block has two possible types.  Each type has a different
  * number of dwords per unit.  Use this handy lookup table to make sure
  * we dump the right amount of data from the indirect buffer
@@ -379,6 +389,7 @@ static int ib_parse_draw_indx(struct kgsl_device *device, unsigned int *pkt,
 		sp_fs_pvt_mem_addr = 0;
 	}
 
+<<<<<<< HEAD
 	if (sp_vs_obj_start_reg) {
 		ret = kgsl_snapshot_get_object(device, ptbase,
 			sp_vs_obj_start_reg & 0xFFFFFFE0, 0,
@@ -399,6 +410,8 @@ static int ib_parse_draw_indx(struct kgsl_device *device, unsigned int *pkt,
 		sp_fs_obj_start_reg = 0;
 	}
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* Finally: VBOs */
 
 	/* The number of active VBOs is stored in VFD_CONTROL_O[31:27] */
@@ -455,6 +468,7 @@ static int ib_parse_type3(struct kgsl_device *device, unsigned int *ptr,
 	return 0;
 }
 
+<<<<<<< HEAD
 /*
  * Parse type0 packets found in the stream.  Some of the registers that are
  * written are clues for GPU buffers that we need to freeze.  Register writes
@@ -545,6 +559,8 @@ static void ib_parse_type0(struct kgsl_device *device, unsigned int *ptr,
 static inline int parse_ib(struct kgsl_device *device, unsigned int ptbase,
 		unsigned int gpuaddr, unsigned int dwords);
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 /* Add an IB as a GPU object, but first, parse it to find more goodies within */
 
 static int ib_add_gpu_object(struct kgsl_device *device, unsigned int ptbase,
@@ -584,12 +600,41 @@ static int ib_add_gpu_object(struct kgsl_device *device, unsigned int ptbase,
 			if (adreno_cmd_is_ib(src[i])) {
 				unsigned int gpuaddr = src[i + 1];
 				unsigned int size = src[i + 2];
+<<<<<<< HEAD
 
 				ret = parse_ib(device, ptbase, gpuaddr, size);
 
 				/* If adding the IB failed then stop parsing */
 				if (ret < 0)
 					goto done;
+=======
+				unsigned int ibbase;
+
+				/* Address of the last processed IB2 */
+				kgsl_regread(device, REG_CP_IB2_BASE, &ibbase);
+
+				/*
+				 * If this is the last IB2 that was executed,
+				 * then push it to make sure it goes into the
+				 * static space
+				 */
+
+				if (ibbase == gpuaddr)
+					push_object(device,
+						SNAPSHOT_OBJ_TYPE_IB, ptbase,
+						gpuaddr, size);
+				else {
+					ret = ib_add_gpu_object(device,
+						ptbase, gpuaddr, size);
+
+					/*
+					 * If adding the IB failed then stop
+					 * parsing
+					 */
+					if (ret < 0)
+						goto done;
+				}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 			} else {
 				ret = ib_parse_type3(device, &src[i], ptbase);
 				/*
@@ -601,10 +646,14 @@ static int ib_add_gpu_object(struct kgsl_device *device, unsigned int ptbase,
 				if (ret < 0)
 					goto done;
 			}
+<<<<<<< HEAD
 		} else if (pkt_is_type0(src[i])) {
 			ib_parse_type0(device, &src[i], ptbase);
 		}
 
+=======
+		}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		i += pktsize;
 		rem -= pktsize;
 	}
@@ -619,6 +668,7 @@ done:
 	return ret;
 }
 
+<<<<<<< HEAD
 /*
  * We want to store the last executed IB1 and IB2 in the static region to ensure
  * that we get at least some information out of the snapshot even if we can't
@@ -647,6 +697,31 @@ static inline int parse_ib(struct kgsl_device *device, unsigned int ptbase,
 		ret = ib_add_gpu_object(device, ptbase, gpuaddr, dwords);
 
 	return ret;
+=======
+/* Snapshot the istore memory */
+static int snapshot_istore(struct kgsl_device *device, void *snapshot,
+	int remain, void *priv)
+{
+	struct kgsl_snapshot_istore *header = snapshot;
+	unsigned int *data = snapshot + sizeof(*header);
+	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+	int count, i;
+
+	count = adreno_dev->istore_size * adreno_dev->instruction_size;
+
+	if (remain < (count * 4) + sizeof(*header)) {
+		KGSL_DRV_ERR(device,
+			"snapshot: Not enough memory for the istore section");
+		return 0;
+	}
+
+	header->count = adreno_dev->istore_size;
+
+	for (i = 0; i < count; i++)
+		kgsl_regread(device, ADRENO_ISTORE_START + i, &data[i]);
+
+	return (count * 4) + sizeof(*header);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 /* Snapshot the ringbuffer memory */
@@ -785,13 +860,21 @@ static int snapshot_rb(struct kgsl_device *device, void *snapshot,
 
 			struct kgsl_memdesc *memdesc =
 				adreno_find_ctxtmem(device, ptbase, ibaddr,
+<<<<<<< HEAD
 					ibsize << 2);
+=======
+					ibsize);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 			/* IOMMU uses a NOP IB placed in setsate memory */
 			if (NULL == memdesc)
 				if (kgsl_gpuaddr_in_memdesc(
 						&device->mmu.setstate_memory,
+<<<<<<< HEAD
 						ibaddr, ibsize << 2))
+=======
+						ibaddr, ibsize))
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 					memdesc = &device->mmu.setstate_memory;
 			/*
 			 * The IB from CP_IB1_BASE and the IBs for legacy
@@ -799,11 +882,20 @@ static int snapshot_rb(struct kgsl_device *device, void *snapshot,
 			 * others get marked at GPU objects
 			 */
 
+<<<<<<< HEAD
 			if (memdesc != NULL)
 				push_object(device, SNAPSHOT_OBJ_TYPE_IB,
 					ptbase, ibaddr, ibsize);
 			else
 				parse_ib(device, ptbase, ibaddr, ibsize);
+=======
+			if (ibaddr == ibbase || memdesc != NULL)
+				push_object(device, SNAPSHOT_OBJ_TYPE_IB,
+					ptbase, ibaddr, ibsize);
+			else
+				ib_add_gpu_object(device, ptbase, ibaddr,
+					ibsize);
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		}
 
 		index = index + 1;
@@ -818,6 +910,7 @@ static int snapshot_rb(struct kgsl_device *device, void *snapshot,
 	return size + sizeof(*header);
 }
 
+<<<<<<< HEAD
 static int snapshot_capture_mem_list(struct kgsl_device *device, void *snapshot,
 			int remain, void *priv)
 {
@@ -876,6 +969,8 @@ static int snapshot_capture_mem_list(struct kgsl_device *device, void *snapshot,
 	return sizeof(*header) + (num_mem * 3 * sizeof(unsigned int));
 }
 
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 /* Snapshot the memory for an indirect buffer */
 static int snapshot_ib(struct kgsl_device *device, void *snapshot,
 	int remain, void *priv)
@@ -906,6 +1001,7 @@ static int snapshot_ib(struct kgsl_device *device, void *snapshot,
 				continue;
 
 			if (adreno_cmd_is_ib(*src))
+<<<<<<< HEAD
 				ret = parse_ib(device, obj->ptbase, src[1],
 					src[2]);
 			else
@@ -914,6 +1010,17 @@ static int snapshot_ib(struct kgsl_device *device, void *snapshot,
 			/* Stop parsing if the type3 decode fails */
 			if (ret < 0)
 				break;
+=======
+				push_object(device, SNAPSHOT_OBJ_TYPE_IB,
+					obj->ptbase, src[1], src[2]);
+			else {
+				ret = ib_parse_type3(device, src, obj->ptbase);
+
+				/* Stop parsing if the type3 decode fails */
+				if (ret < 0)
+					break;
+			}
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		}
 	}
 
@@ -979,6 +1086,7 @@ void *adreno_snapshot(struct kgsl_device *device, void *snapshot, int *remain,
 		snapshot, remain, snapshot_rb, NULL);
 
 	/*
+<<<<<<< HEAD
 	 * Add a section that lists (gpuaddr, size, memtype) tuples of the
 	 * hanging process
 	 */
@@ -986,6 +1094,8 @@ void *adreno_snapshot(struct kgsl_device *device, void *snapshot, int *remain,
 			KGSL_SNAPSHOT_SECTION_MEMLIST, snapshot, remain,
 			snapshot_capture_mem_list, NULL);
 	/*
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	 * Make sure that the last IB1 that was being executed is dumped.
 	 * Since this was the last IB1 that was processed, we should have
 	 * already added it to the list during the ringbuffer parse but we
@@ -1033,6 +1143,20 @@ void *adreno_snapshot(struct kgsl_device *device, void *snapshot, int *remain,
 	for (i = 0; i < objbufptr; i++)
 		snapshot = dump_object(device, i, snapshot, remain);
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Only dump the istore on a hang - reading it on a running system
+	 * has a non 0 chance of hanging the GPU
+	 */
+
+	if (hang) {
+		snapshot = kgsl_snapshot_add_section(device,
+			KGSL_SNAPSHOT_SECTION_ISTORE, snapshot, remain,
+			snapshot_istore, NULL);
+	}
+
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* Add GPU specific sections - registers mainly, but other stuff too */
 	if (adreno_dev->gpudev->snapshot)
 		snapshot = adreno_dev->gpudev->snapshot(adreno_dev, snapshot,

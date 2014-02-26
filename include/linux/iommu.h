@@ -87,7 +87,10 @@ struct iommu_ops {
 
 extern int bus_set_iommu(struct bus_type *bus, struct iommu_ops *ops);
 extern bool iommu_present(struct bus_type *bus);
+<<<<<<< HEAD
 extern bool iommu_found(void);
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags);
 extern void iommu_domain_free(struct iommu_domain *domain);
 extern int iommu_attach_device(struct iommu_domain *domain,
@@ -139,6 +142,7 @@ static inline int report_iommu_fault(struct iommu_domain *domain,
 		struct device *dev, unsigned long iova, int flags)
 {
 	int ret = -ENOSYS;
+<<<<<<< HEAD
 
 	/*
 	 * if upper layers showed interest and installed a fault handler,
@@ -148,6 +152,26 @@ static inline int report_iommu_fault(struct iommu_domain *domain,
 		ret = domain->handler(domain, dev, iova, flags);
 
 	return ret;
+}
+=======
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
+
+	/*
+	 * if upper layers showed interest and installed a fault handler,
+	 * invoke it.
+	 */
+	if (domain->handler)
+		ret = domain->handler(domain, dev, iova, flags);
+
+<<<<<<< HEAD
+struct iommu_ops {};
+
+static inline bool iommu_present(struct bus_type *bus)
+{
+	return false;
+=======
+	return ret;
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 }
 
 #else /* CONFIG_IOMMU_API */
@@ -159,16 +183,15 @@ static inline bool iommu_present(struct bus_type *bus)
 	return false;
 }
 
-static inline bool iommu_found(void)
-{
-	return false;
-}
-
+<<<<<<< HEAD
 #ifdef CONFIG_PYRAMID_SENSE_ICS
 static inline struct iommu_domain *iommu_domain_alloc(int flags)
 #else
 static inline struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
 #endif
+=======
+static inline struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
+>>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 {
 	return NULL;
 }

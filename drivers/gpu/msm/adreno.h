@@ -184,8 +184,7 @@ struct adreno_gpudev {
 	void (*irq_control)(struct adreno_device *, int);
 	unsigned int (*irq_pending)(struct adreno_device *);
 	void * (*snapshot)(struct adreno_device *, void *, int *, int);
-	int (*rb_init)(struct adreno_device *, struct adreno_ringbuffer *);
-	void (*perfcounter_init)(struct adreno_device *);
+	void (*rb_init)(struct adreno_device *, struct adreno_ringbuffer *);
 	void (*start)(struct adreno_device *);
 	unsigned int (*busy_cycles)(struct adreno_device *);
 	void (*perfcounter_enable)(struct adreno_device *, unsigned int group,
@@ -511,5 +510,11 @@ static inline int adreno_add_idle_cmds(struct adreno_device *adreno_dev,
 
 	return cmds - start;
 }
+
+#ifdef CONFIG_DEBUG_FS
+void adreno_debugfs_init(struct kgsl_device *device);
+#else
+static inline void adreno_debugfs_init(struct kgsl_device *device) { }
+#endif
 
 #endif /*__ADRENO_H */

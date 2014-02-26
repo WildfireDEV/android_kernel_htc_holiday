@@ -13,6 +13,10 @@
 #ifndef __ADRENO_RINGBUFFER_H
 #define __ADRENO_RINGBUFFER_H
 
+#define GSL_RB_USE_MEM_RPTR
+#define GSL_RB_USE_MEM_TIMESTAMP
+#define GSL_DEVICE_SHADOW_MEMSTORE_TO_USER
+
 /*
  * Adreno ringbuffer sizes in bytes - these are converted to
  * the appropriate log2 values in the code
@@ -56,7 +60,7 @@ struct adreno_ringbuffer {
 	unsigned int wptr; /* write pointer offset in dwords from baseaddr */
 	unsigned int rptr; /* read pointer offset in dwords from baseaddr */
 
-	unsigned int global_ts;
+	unsigned int timestamp[KGSL_MEMSTORE_MAX];
 };
 
 
@@ -69,15 +73,37 @@ struct adreno_ringbuffer {
 		gpuaddr += sizeof(uint); \
 	} while (0)
 
+/* timestamp */
+#ifdef GSL_DEVICE_SHADOW_MEMSTORE_TO_USER
+#define GSL_RB_USE_MEM_TIMESTAMP
+#endif /* GSL_DEVICE_SHADOW_MEMSTORE_TO_USER */
+
+#ifdef GSL_RB_USE_MEM_TIMESTAMP
 /* enable timestamp (...scratch0) memory shadowing */
 #define GSL_RB_MEMPTRS_SCRATCH_MASK 0x1
+#define GSL_RB_INIT_TIMESTAMP(rb)
+
+#else
+#define GSL_RB_MEMPTRS_SCRATCH_MASK 0x0
+#define GSL_RB_INIT_TIMESTAMP(rb) \
+		adreno_regwrite((rb)->device->id, REG_CP_TIMESTAMP, 0)
+
+#endif /* GSL_RB_USE_MEMTIMESTAMP */
 
 /* mem rptr */
+#ifdef GSL_RB_USE_MEM_RPTR
 #define GSL_RB_CNTL_NO_UPDATE 0x0 /* enable */
 #define GSL_RB_GET_READPTR(rb, data) \
 	do { \
 		*(data) = rb->memptrs->rptr; \
 	} while (0)
+#else
+#define GSL_RB_CNTL_NO_UPDATE 0x1 /* disable */
+#define GSL_RB_GET_READPTR(rb, data) \
+	do { \
+		adreno_regread((rb)->device->id, REG_CP_RB_RPTR, (data)); \
+	} while (0)
+#endif /* GSL_RB_USE_MEMRPTR */
 
 #define GSL_RB_CNTL_POLL_EN 0x0 /* disable */
 
@@ -97,7 +123,8 @@ int adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 
 int adreno_ringbuffer_init(struct kgsl_device *device);
 
-int adreno_ringbuffer_start(struct adreno_ringbuffer *rb);
+int adreno_ringbuffer_start(struct adreno_ringbuffer *rb,
+				unsigned int init_ram);
 
 void adreno_ringbuffer_stop(struct adreno_ringbuffer *rb);
 

@@ -140,6 +140,9 @@ config CPU_FREQ_DEFAULT_GOV_BADASS
 	  Be aware that not all cpufreq drivers support the badass
 	  governor. If unsure have a look at the help section of the
 	  driver. Fallback governor will be the performance governor.
+
+
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -308,12 +311,9 @@ config CPU_FREQ_GOV_BADASS
 	  The governor does a periodic polling and
 	  changes frequency based on the CPU utilization.
 	  The support for this governor depends on CPU capability to
-	  do fast frequency switching (i.e, very low latency frequency
-	  transitions).
-
+	  do fast frequency switching (i.e, very low latency frequency	  transitions).
 	  To compile this driver as a module, choose M here: the
 	  module will be called cpufreq_badass.
-
 	  If in doubt, say N.
 
 config CPU_FREQ_GOV_BADASS_2_PHASE

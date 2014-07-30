@@ -13,10 +13,7 @@
 
 #include <linux/module.h>
 #include <linux/debugfs.h>
-<<<<<<< HEAD
 #include <linux/seq_file.h>
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #include "kgsl.h"
 #include "kgsl_device.h"
@@ -129,7 +126,6 @@ KGSL_DEBUGFS_LOG(mem_log);
 KGSL_DEBUGFS_LOG(pwr_log);
 KGSL_DEBUGFS_LOG(ft_log);
 
-<<<<<<< HEAD
 static int memfree_hist_print(struct seq_file *s, void *unused)
 {
 	void *base = kgsl_driver.memfree_hist.base_hist_rb;
@@ -176,8 +172,6 @@ static const struct file_operations memfree_hist_fops = {
 	.release = single_release,
 };
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 void kgsl_device_debugfs_init(struct kgsl_device *device)
 {
 	if (kgsl_debugfs_dir && !IS_ERR(kgsl_debugfs_dir))
@@ -204,13 +198,8 @@ void kgsl_device_debugfs_init(struct kgsl_device *device)
 				&mem_log_fops);
 	debugfs_create_file("log_level_pwr", 0644, device->d_debugfs, device,
 				&pwr_log_fops);
-<<<<<<< HEAD
 	debugfs_create_file("memfree_history", 0444, device->d_debugfs, device,
 				&memfree_hist_fops);
-=======
-	debugfs_create_file("log_level_ft", 0644, device->d_debugfs, device,
-				&ft_log_fops);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	/* Create postmortem dump control files */
 
@@ -256,7 +245,6 @@ static char get_alignflag(const struct kgsl_memdesc *m)
 	return '-';
 }
 
-<<<<<<< HEAD
 static char get_cacheflag(const struct kgsl_memdesc *m)
 {
 	static const char table[] = {
@@ -288,14 +276,11 @@ static void print_mem_entry(struct seq_file *s, struct kgsl_mem_entry *entry)
 			memtype_str(entry->memtype), usage, m->sglen);
 }
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static int process_mem_print(struct seq_file *s, void *unused)
 {
 	struct kgsl_mem_entry *entry;
 	struct rb_node *node;
 	struct kgsl_process_private *private = s->private;
-<<<<<<< HEAD
 	int next = 0;
 
 	seq_printf(s, "%8s %8s %5s %5s %10s %16s %5s\n",
@@ -324,32 +309,6 @@ static int process_mem_print(struct seq_file *s, void *unused)
 		next++;
 	}
 
-=======
-	char flags[4];
-	char usage[16];
-
-	spin_lock(&private->mem_lock);
-	seq_printf(s, "%8s %8s %5s %10s %16s %5s\n",
-		   "gpuaddr", "size", "flags", "type", "usage", "sglen");
-	for (node = rb_first(&private->mem_rb); node; node = rb_next(node)) {
-		struct kgsl_memdesc *m;
-
-		entry = rb_entry(node, struct kgsl_mem_entry, node);
-		m = &entry->memdesc;
-
-		flags[0] = m->priv & KGSL_MEMDESC_GLOBAL ?  'g' : '-';
-		flags[1] = m->flags & KGSL_MEMFLAGS_GPUREADONLY ? 'r' : '-';
-		flags[2] = get_alignflag(m);
-		flags[3] = '\0';
-
-		kgsl_get_memory_usage(usage, sizeof(usage), m->flags);
-
-		seq_printf(s, "%08x %8d %5s %10s %16s %5d\n",
-			   m->gpuaddr, m->size, flags,
-			   memtype_str(entry->memtype), usage, m->sglen);
-	}
-	spin_unlock(&private->mem_lock);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	return 0;
 }
 

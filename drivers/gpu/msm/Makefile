@@ -8,10 +8,6 @@ msm_kgsl_core-y = \
 	kgsl_pwrscale.o \
 	kgsl_mmu.o \
 	kgsl_gpummu.o \
-<<<<<<< HEAD
-=======
-	kgsl_iommu.o \
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	kgsl_snapshot.o \
 	kgsl_events.o
 
@@ -32,12 +28,9 @@ msm_adreno-y += \
 	adreno_a2xx.o \
 	adreno_a2xx_trace.o \
 	adreno_a2xx_snapshot.o \
-<<<<<<< HEAD
 	adreno_a3xx.o \
 	adreno_a3xx_trace.o \
 	adreno_a3xx_snapshot.o \
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	adreno.o
 
 msm_adreno-$(CONFIG_DEBUG_FS) += adreno_debugfs.o

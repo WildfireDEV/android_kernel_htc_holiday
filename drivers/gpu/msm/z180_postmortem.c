@@ -168,10 +168,7 @@ static void z180_dump_ib(struct kgsl_device *device)
 				KGSL_LOG_DUMP(device,
 				"Could not map IB to kernel memory, Ringbuffer Slot: %d\n",
 				rb_slot_num);
-<<<<<<< HEAD
 				kgsl_mem_entry_put(entry);
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 				continue;
 			}
 
@@ -194,10 +191,7 @@ static void z180_dump_ib(struct kgsl_device *device)
 						linebuf);
 			}
 			KGSL_LOG_DUMP(device, "IB Dump Finished\n");
-<<<<<<< HEAD
 			kgsl_mem_entry_put(entry);
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		}
 	}
 }

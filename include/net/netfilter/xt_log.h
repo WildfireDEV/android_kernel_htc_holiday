@@ -47,11 +47,7 @@ static void sb_close(struct sbuff *m)
 	if (likely(m != &emergency))
 		kfree(m);
 	else {
-<<<<<<< HEAD
 		(void) xchg(&emergency_ptr, m);
-=======
-		emergency_ptr = m;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		local_bh_enable();
 	}
 }

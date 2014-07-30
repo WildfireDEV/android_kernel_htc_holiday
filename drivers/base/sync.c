@@ -16,7 +16,6 @@
 
 #include <linux/debugfs.h>
 #include <linux/export.h>
-#include <linux/module.h>
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
@@ -31,12 +30,11 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/sync.h>
-#include <asm/current.h>
 
 static void sync_fence_signal_pt(struct sync_pt *pt);
 static int _sync_pt_has_signaled(struct sync_pt *pt);
 static void sync_fence_free(struct kref *kref);
-static void sync_dump(struct sync_fence *fence);
+static void sync_dump(void);
 
 static LIST_HEAD(sync_timeline_list_head);
 static DEFINE_SPINLOCK(sync_timeline_list_lock);
@@ -272,6 +270,7 @@ static struct sync_fence *sync_fence_alloc(const char *name)
 	INIT_LIST_HEAD(&fence->pt_list_head);
 	INIT_LIST_HEAD(&fence->waiter_list_head);
 	spin_lock_init(&fence->waiter_list_lock);
+
 	init_waitqueue_head(&fence->wq);
 
 	spin_lock_irqsave(&sync_fence_list_lock, flags);
@@ -325,6 +324,7 @@ static int sync_fence_copy_pts(struct sync_fence *dst, struct sync_fence *src)
 
 		new_pt->fence = dst;
 		list_add(&new_pt->pt_list, &dst->pt_list_head);
+		sync_pt_activate(new_pt);
 	}
 
 	return 0;
@@ -356,6 +356,7 @@ static int sync_fence_merge_pts(struct sync_fence *dst, struct sync_fence *src)
 					new_pt->fence = dst;
 					list_replace(&dst_pt->pt_list,
 						     &new_pt->pt_list);
+					sync_pt_activate(new_pt);
 					sync_pt_free(dst_pt);
 				}
 				collapsed = true;
@@ -371,6 +372,7 @@ static int sync_fence_merge_pts(struct sync_fence *dst, struct sync_fence *src)
 
 			new_pt->fence = dst;
 			list_add(&new_pt->pt_list, &dst->pt_list_head);
+			sync_pt_activate(new_pt);
 		}
 	}
 
@@ -451,7 +453,6 @@ struct sync_fence *sync_fence_merge(const char *name,
 				    struct sync_fence *a, struct sync_fence *b)
 {
 	struct sync_fence *fence;
-	struct list_head *pos;
 	int err;
 
 	fence = sync_fence_alloc(name);
@@ -465,12 +466,6 @@ struct sync_fence *sync_fence_merge(const char *name,
 	err = sync_fence_merge_pts(fence, b);
 	if (err < 0)
 		goto err;
-
-	list_for_each(pos, &fence->pt_list_head) {
-		struct sync_pt *pt =
-			container_of(pos, struct sync_pt, pt_list);
-		sync_pt_activate(pt);
-	}
 
 	/*
 	 * signal the fence in case one of it's pts were activated before
@@ -612,16 +607,14 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 
 	if (fence->status < 0) {
 		pr_info("fence error %d on [%p]\n", fence->status, fence);
-		sync_dump(fence);
+		sync_dump();
 		return fence->status;
 	}
 
 	if (fence->status == 0) {
-		if (timeout > 0) {
-			pr_info("fence timeout on [%p] after %dms\n", fence,
-				jiffies_to_msecs(timeout));
-			sync_dump(fence);
-		}
+		pr_info("fence timeout on [%p] after %dms\n", fence,
+			jiffies_to_msecs(timeout));
+		sync_dump();
 		return -ETIME;
 	}
 
@@ -987,7 +980,7 @@ late_initcall(sync_debugfs_init);
 
 #define DUMP_CHUNK 256
 static char sync_dump_buf[64 * 1024];
-static void sync_dump(struct sync_fence *fence)
+void sync_dump(void)
 {
        struct seq_file s = {
                .buf = sync_dump_buf,
@@ -995,9 +988,7 @@ static void sync_dump(struct sync_fence *fence)
        };
        int i;
 
-       seq_printf(&s, "fence:\n--------------\n");
-       sync_print_fence(&s, fence);
-       seq_printf(&s, "\n");
+       sync_debugfs_show(&s, NULL);
 
        for (i = 0; i < s.count; i += DUMP_CHUNK) {
                if ((s.count - i) > DUMP_CHUNK) {
@@ -1012,7 +1003,7 @@ static void sync_dump(struct sync_fence *fence)
        }
 }
 #else
-static void sync_dump(struct sync_fence *fence)
+static void sync_dump(void)
 {
 }
 #endif

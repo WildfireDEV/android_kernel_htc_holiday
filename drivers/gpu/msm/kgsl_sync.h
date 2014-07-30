@@ -19,11 +19,8 @@
 struct kgsl_sync_timeline {
 	struct sync_timeline timeline;
 	unsigned int last_timestamp;
-<<<<<<< HEAD
 	struct kgsl_device *device;
 	u32 context_id;
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 struct kgsl_sync_pt {

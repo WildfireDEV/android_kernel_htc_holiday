@@ -65,17 +65,6 @@ struct mem_entry_stats {
 		mem_entry_max_show), \
 }
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
-=======
-
-/*
- * One page allocation for a guard region to protect against over-zealous
- * GPU pre-fetch
- */
-
-static struct page *kgsl_guard_page;
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 /**
  * Given a kobj, find the process structure attached to it
  */
@@ -369,13 +358,6 @@ static void kgsl_page_alloc_free(struct kgsl_memdesc *memdesc)
 	struct scatterlist *sg;
 	int sglen = memdesc->sglen;
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
-=======
-	/* Don't free the guard page if it was used */
-	if (memdesc->priv & KGSL_MEMDESC_GUARD_PAGE)
-		sglen--;
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 	kgsl_driver.stats.page_alloc -= memdesc->size;
 
 	if (memdesc->hostptr) {
@@ -413,13 +395,6 @@ static int kgsl_page_alloc_map_kernel(struct kgsl_memdesc *memdesc)
 		int sglen = memdesc->sglen;
 		int i, count = 0;
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
-=======
-		/* Don't map the guard page if it exists */
-		if (memdesc->priv & KGSL_MEMDESC_GUARD_PAGE)
-			sglen--;
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 		/* create a list of pages to call vmap */
 		pages = vmalloc(npages * sizeof(struct page *));
 		if (!pages) {
@@ -553,11 +528,7 @@ EXPORT_SYMBOL(kgsl_cache_range_op);
 static int
 _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 			struct kgsl_pagetable *pagetable,
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 			size_t size)
-=======
-			size_t size, unsigned int protflags)
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 {
 	int pcount = 0, order, ret = 0;
 	int j, len, page_size, sglen_alloc, sglen = 0;
@@ -571,12 +542,8 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 	page_size = (align >= ilog2(SZ_64K) && size >= SZ_64K)
 			? SZ_64K : PAGE_SIZE;
 	/* update align flags for what we actually use */
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	if (page_size != PAGE_SIZE)
 		kgsl_memdesc_set_align(memdesc, ilog2(page_size));
-=======
-	kgsl_memdesc_set_align(memdesc, ilog2(page_size));
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 
 	/*
 	 * There needs to be enough room in the sg structure to be able to
@@ -584,39 +551,21 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 	 */
 
 	sglen_alloc = PAGE_ALIGN(size) >> PAGE_SHIFT;
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
-=======
-
-	/*
-	 * Add guard page to the end of the allocation when the
-	 * IOMMU is in use.
-	 */
-
-	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_IOMMU)
-		sglen_alloc++;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 
 	memdesc->size = size;
 	memdesc->pagetable = pagetable;
 	memdesc->ops = &kgsl_page_alloc_ops;
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	memdesc->sglen_alloc = sglen_alloc;
 	memdesc->sg = kgsl_sg_alloc(memdesc->sglen_alloc);
-=======
-	memdesc->sg = kgsl_sg_alloc(sglen_alloc);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 
 	if (memdesc->sg == NULL) {
-		KGSL_CORE_ERR("vmalloc(%d) failed\n",
-			sglen_alloc * sizeof(struct scatterlist));
 		ret = -ENOMEM;
 		goto done;
 	}
 
 	/*
 	 * Allocate space to store the list of pages to send to vmap.
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	 * This is an array of pointers so we can track 1024 pages per page
 	 * of allocation.  Since allocations can be as large as the user dares,
 	 * we have to use the kmalloc/vmalloc trick here to make sure we can
@@ -660,44 +609,6 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 
 		page = alloc_pages(gfp_mask, get_order(page_size));
 
-=======
-	 * This is an array of pointers so we can track 1024 pages per page of
-	 * allocation which means we can handle up to a 8MB buffer request with
-	 * two pages; well within the acceptable limits for using kmalloc.
-	 */
-
-	pages = kmalloc(sglen_alloc * sizeof(struct page *), GFP_KERNEL);
-
-	if (pages == NULL) {
-		KGSL_CORE_ERR("kmalloc (%d) failed\n",
-			sglen_alloc * sizeof(struct page *));
-		ret = -ENOMEM;
-		goto done;
-	}
-
-	kmemleak_not_leak(memdesc->sg);
-
-	memdesc->sglen_alloc = sglen_alloc;
-	sg_init_table(memdesc->sg, sglen_alloc);
-
-	len = size;
-
-	while (len > 0) {
-		struct page *page;
-		unsigned int gfp_mask = GFP_KERNEL | __GFP_HIGHMEM |
-			__GFP_NOWARN;
-		int j;
-
-		/* don't waste space at the end of the allocation*/
-		if (len < page_size)
-			page_size = PAGE_SIZE;
-
-		if (page_size != PAGE_SIZE)
-			gfp_mask |= __GFP_COMP;
-
-		page = alloc_pages(gfp_mask, get_order(page_size));
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 		if (page == NULL) {
 			if (page_size != PAGE_SIZE) {
 				page_size = PAGE_SIZE;
@@ -719,70 +630,7 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 		len -= page_size;
 	}
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	memdesc->sglen = sglen;
-=======
-	/* Add the guard page to the end of the sglist */
-
-	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_IOMMU) {
-		/*
-		 * It doesn't matter if we use GFP_ZERO here, this never
-		 * gets mapped, and we only allocate it once in the life
-		 * of the system
-		 */
-
-		if (kgsl_guard_page == NULL)
-			kgsl_guard_page = alloc_page(GFP_KERNEL | __GFP_ZERO |
-				__GFP_HIGHMEM);
-
-		if (kgsl_guard_page != NULL) {
-			sg_set_page(&memdesc->sg[sglen++], kgsl_guard_page,
-				PAGE_SIZE, 0);
-			memdesc->priv |= KGSL_MEMDESC_GUARD_PAGE;
-		}
-	}
-
-	memdesc->sglen = sglen;
-
-	/*
-	 * All memory that goes to the user has to be zeroed out before it gets
-	 * exposed to userspace. This means that the memory has to be mapped in
-	 * the kernel, zeroed (memset) and then unmapped.  This also means that
-	 * the dcache has to be flushed to ensure coherency between the kernel
-	 * and user pages. We used to pass __GFP_ZERO to alloc_page which mapped
-	 * zeroed and unmaped each individual page, and then we had to turn
-	 * around and call flush_dcache_page() on that page to clear the caches.
-	 * This was killing us for performance. Instead, we found it is much
-	 * faster to allocate the pages without GFP_ZERO, map the entire range,
-	 * memset it, flush the range and then unmap - this results in a factor
-	 * of 4 improvement for speed for large buffers.  There is a small
-	 * increase in speed for small buffers, but only on the order of a few
-	 * microseconds at best.  The only downside is that there needs to be
-	 * enough temporary space in vmalloc to accomodate the map. This
-	 * shouldn't be a problem, but if it happens, fall back to a much slower
-	 * path
-	 */
-
-	ptr = vmap(pages, pcount, VM_IOREMAP, page_prot);
-
-	if (ptr != NULL) {
-		memset(ptr, 0, memdesc->size);
-		dmac_flush_range(ptr, ptr + memdesc->size);
-		vunmap(ptr);
-	} else {
-		/* Very, very, very slow path */
-
-		for (j = 0; j < pcount; j++) {
-			ptr = kmap_atomic(pages[j]);
-			memset(ptr, 0, PAGE_SIZE);
-			dmac_flush_range(ptr, ptr + PAGE_SIZE);
-			kunmap_atomic(ptr);
-		}
-	}
-
-	outer_cache_range_op_sg(memdesc->sg, memdesc->sglen,
-				KGSL_CACHE_OP_FLUSH);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 
 	/*
 	 * All memory that goes to the user has to be zeroed out before it gets
@@ -832,14 +680,10 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 		kgsl_driver.stats.histogram[order]++;
 
 done:
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	if ((memdesc->sglen_alloc * sizeof(struct page *)) > PAGE_SIZE)
 		vfree(pages);
 	else
 		kfree(pages);
-=======
-	kfree(pages);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 
 	if (ret)
 		kgsl_sharedmem_free(memdesc);
@@ -856,12 +700,7 @@ kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 
 	size = ALIGN(size, PAGE_SIZE * 2);
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	ret =  _kgsl_sharedmem_page_alloc(memdesc, pagetable, size);
-=======
-	ret =  _kgsl_sharedmem_page_alloc(memdesc, pagetable, size,
-		GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 	if (!ret)
 		ret = kgsl_page_alloc_map_kernel(memdesc);
 	if (ret)
@@ -875,21 +714,7 @@ kgsl_sharedmem_page_alloc_user(struct kgsl_memdesc *memdesc,
 			    struct kgsl_pagetable *pagetable,
 			    size_t size)
 {
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_sharedmem.c
 	return _kgsl_sharedmem_page_alloc(memdesc, pagetable, PAGE_ALIGN(size));
-=======
-	unsigned int protflags;
-
-	if (size == 0)
-		return -EINVAL;
-
-	protflags = GSL_PT_PAGE_RV;
-	if (!(memdesc->flags & KGSL_MEMFLAGS_GPUREADONLY))
-		protflags |= GSL_PT_PAGE_WV;
-
-	return _kgsl_sharedmem_page_alloc(memdesc, pagetable, size,
-		protflags);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_sharedmem.c
 }
 EXPORT_SYMBOL(kgsl_sharedmem_page_alloc_user);
 

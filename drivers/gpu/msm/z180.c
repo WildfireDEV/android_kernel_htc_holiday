@@ -1,8 +1,4 @@
-<<<<<<< HEAD:drivers/gpu/msm/z180.c
 /* Copyright (c) 2002,2007-2013, The Linux Foundation. All rights reserved.
-=======
-/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/z180.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -284,7 +280,6 @@ error:
 }
 
 static inline unsigned int rb_offset(unsigned int timestamp)
-<<<<<<< HEAD:drivers/gpu/msm/z180.c
 {
 	return (timestamp % Z180_PACKET_COUNT)
 		*sizeof(unsigned int)*(Z180_PACKET_SIZE);
@@ -296,19 +291,6 @@ static inline unsigned int rb_gpuaddr(struct z180_device *z180_dev,
 	return z180_dev->ringbuffer.cmdbufdesc.gpuaddr + rb_offset(timestamp);
 }
 
-=======
-{
-	return (timestamp % Z180_PACKET_COUNT)
-		*sizeof(unsigned int)*(Z180_PACKET_SIZE);
-}
-
-static inline unsigned int rb_gpuaddr(struct z180_device *z180_dev,
-					unsigned int timestamp)
-{
-	return z180_dev->ringbuffer.cmdbufdesc.gpuaddr + rb_offset(timestamp);
-}
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/z180.c
 static void addmarker(struct z180_ringbuffer *rb, unsigned int timestamp)
 {
 	char *ptr = (char *)(rb->cmdbufdesc.hostptr);
@@ -340,19 +322,11 @@ static void addcmd(struct z180_ringbuffer *rb, unsigned int timestamp,
 	*p++ = ADDR_VGV3_LAST << 24;
 }
 
-static void z180_cmdstream_start(struct kgsl_device *device, int init_ram)
+static void z180_cmdstream_start(struct kgsl_device *device)
 {
 	struct z180_device *z180_dev = Z180_DEVICE(device);
 	unsigned int cmd = VGV3_NEXTCMD_JUMP << VGV3_NEXTCMD_NEXTCMD_FSHIFT;
 
-<<<<<<< HEAD:drivers/gpu/msm/z180.c
-=======
-	if (init_ram) {
-		z180_dev->timestamp = 0;
-		z180_dev->current_timestamp = 0;
-	}
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/z180.c
 	addmarker(&z180_dev->ringbuffer, 0);
 
 	z180_cmdwindow_write(device, ADDR_VGV3_MODE, 4);
@@ -607,7 +581,7 @@ static int z180_start(struct kgsl_device *device)
 	if (status)
 		goto error_clk_off;
 
-	z180_cmdstream_start(device, init_ram);
+	z180_cmdstream_start(device);
 
 	mod_timer(&device->idle_timer, jiffies + FIRST_TIMEOUT);
 	kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_ON);

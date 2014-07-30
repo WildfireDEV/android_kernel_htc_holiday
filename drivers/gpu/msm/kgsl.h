@@ -149,11 +149,8 @@ struct kgsl_memdesc_ops {
 #define KGSL_MEMDESC_GUARD_PAGE BIT(0)
 /* Set if the memdesc is mapped into all pagetables */
 #define KGSL_MEMDESC_GLOBAL BIT(1)
-<<<<<<< HEAD:drivers/gpu/msm/kgsl.h
 /* The memdesc is frozen during a snapshot */
 #define KGSL_MEMDESC_FROZEN BIT(2)
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl.h
 
 /* shared memory allocation */
 struct kgsl_memdesc {
@@ -180,21 +177,13 @@ struct kgsl_memdesc {
 #define KGSL_MEM_ENTRY_ION    4
 #define KGSL_MEM_ENTRY_MAX    5
 
-/* List of flags */
-
-#define KGSL_MEM_ENTRY_FROZEN (1 << 0)
-
 struct kgsl_mem_entry {
 	struct kref refcount;
 	struct kgsl_memdesc memdesc;
 	int memtype;
-	int flags;
 	void *priv_data;
 	struct rb_node node;
-<<<<<<< HEAD:drivers/gpu/msm/kgsl.h
 	unsigned int id;
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl.h
 	unsigned int context_id;
 	/* back pointer to private structure under whose context this
 	* allocation is made */
@@ -219,28 +208,16 @@ struct kgsl_mem_entry *kgsl_sharedmem_find_region(
 
 void kgsl_get_memory_usage(char *str, size_t len, unsigned int memflags);
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl.h
 void kgsl_signal_event(struct kgsl_device *device,
 		struct kgsl_context *context, unsigned int timestamp,
 		unsigned int type);
 
 void kgsl_signal_events(struct kgsl_device *device,
 		struct kgsl_context *context, unsigned int type);
-=======
-int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
-	void (*cb)(struct kgsl_device *, void *, u32, u32), void *priv,
-	void *owner);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl.h
 
 void kgsl_cancel_events(struct kgsl_device *device,
 	void *owner);
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl.h
-=======
-void kgsl_cancel_events_ctxt(struct kgsl_device *device,
-	struct kgsl_context *context);
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl.h
 extern const struct dev_pm_ops kgsl_pm_ops;
 
 struct early_suspend;

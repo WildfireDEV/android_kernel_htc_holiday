@@ -1,8 +1,4 @@
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_pwrscale.c
 /* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
-=======
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_pwrscale.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and

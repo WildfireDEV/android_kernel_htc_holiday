@@ -1,8 +1,4 @@
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 /* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
-=======
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -303,11 +299,7 @@ static void kgsl_snapshot_put_object(struct kgsl_device *device,
 {
 	list_del(&obj->node);
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 	obj->entry->memdesc.priv &= ~KGSL_MEMDESC_FROZEN;
-=======
-	obj->entry->flags &= ~KGSL_MEM_ENTRY_FROZEN;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 	kgsl_mem_entry_put(obj->entry);
 
 	kfree(obj);
@@ -338,10 +330,7 @@ int kgsl_snapshot_have_object(struct kgsl_device *device, unsigned int ptbase,
 
 	return 0;
 }
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 EXPORT_SYMBOL(kgsl_snapshot_have_object);
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 
 /* kgsl_snapshot_get_object - Mark a GPU buffer to be frozen
  * @device - the device that is being snapshotted
@@ -361,13 +350,10 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 	struct kgsl_mem_entry *entry;
 	struct kgsl_snapshot_object *obj;
 	int offset;
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 	int ret = -EINVAL;
 
 	if (!gpuaddr)
 		return 0;
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 
 	entry = kgsl_get_mem_entry(device, ptbase, gpuaddr, size);
 
@@ -381,11 +367,7 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 	if (entry->memtype != KGSL_MEM_ENTRY_KERNEL) {
 		KGSL_DRV_ERR(device,
 			"Only internal GPU buffers can be frozen\n");
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 		goto err_put;
-=======
-		return -EINVAL;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 	}
 
 	/*
@@ -408,58 +390,33 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 	if (size + offset > entry->memdesc.size) {
 		KGSL_DRV_ERR(device, "Invalid size for GPU buffer %8.8X\n",
 				gpuaddr);
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 		goto err_put;
-=======
-		return -EINVAL;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 	}
 
 	/* If the buffer is already on the list, skip it */
 	list_for_each_entry(obj, &device->snapshot_obj_list, node) {
 		if (obj->gpuaddr == gpuaddr && obj->ptbase == ptbase) {
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 			/* If the size is different, use the bigger size */
 			if (obj->size < size)
 				obj->size = size;
 			ret = 0;
 			goto err_put;
-=======
-			/* If the size is different, use the new size */
-			if (obj->size != size)
-				obj->size = size;
-
-			return 0;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 		}
 	}
 
 	if (kgsl_memdesc_map(&entry->memdesc) == NULL) {
 		KGSL_DRV_ERR(device, "Unable to map GPU buffer %X\n",
 				gpuaddr);
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 		goto err_put;
-=======
-		return -EINVAL;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 	}
 
 	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
 
 	if (obj == NULL) {
 		KGSL_DRV_ERR(device, "Unable to allocate memory\n");
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 		goto err_put;
 	}
 
-=======
-		return -EINVAL;
-	}
-
-	/* Ref count the mem entry */
-	kgsl_mem_entry_get(entry);
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 	obj->type = type;
 	obj->entry = entry;
 	obj->gpuaddr = gpuaddr;
@@ -477,7 +434,6 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 	 * 0 so it doesn't get counted twice
 	 */
 
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 	ret = (entry->memdesc.priv & KGSL_MEMDESC_FROZEN) ? 0
 		: entry->memdesc.size;
 
@@ -487,14 +443,6 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 err_put:
 	kgsl_mem_entry_put(entry);
 	return ret;
-=======
-	if (entry->flags & KGSL_MEM_ENTRY_FROZEN)
-		return 0;
-
-	entry->flags |= KGSL_MEM_ENTRY_FROZEN;
-
-	return entry->memdesc.size;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 }
 EXPORT_SYMBOL(kgsl_snapshot_get_object);
 
@@ -692,7 +640,6 @@ static ssize_t snapshot_show(struct file *filep, struct kobject *kobj,
 	obj_itr_init(&itr, buf, off, count);
 
 	ret = obj_itr_out(&itr, device->snapshot, device->snapshot_size);
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 
 	if (ret == 0)
 		goto done;
@@ -705,20 +652,6 @@ static ssize_t snapshot_show(struct file *filep, struct kobject *kobj,
 		head.id = KGSL_SNAPSHOT_SECTION_END;
 		head.size = sizeof(head);
 
-=======
-
-	if (ret == 0)
-		goto done;
-
-	list_for_each_entry(obj, &device->snapshot_obj_list, node)
-		kgsl_snapshot_dump_object(device, obj, &itr);
-
-	{
-		head.magic = SNAPSHOT_SECTION_MAGIC;
-		head.id = KGSL_SNAPSHOT_SECTION_END;
-		head.size = sizeof(head);
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 		obj_itr_out(&itr, &head, sizeof(head));
 	}
 
@@ -728,7 +661,6 @@ static ssize_t snapshot_show(struct file *filep, struct kobject *kobj,
 	 * writing any bytes - so only release if we get this far and
 	 * itr->write is 0
 	 */
-<<<<<<< HEAD:drivers/gpu/msm/kgsl_snapshot.c
 
 	if (itr.write == 0) {
 		list_for_each_entry_safe(obj, tmp, &device->snapshot_obj_list,
@@ -741,20 +673,6 @@ static ssize_t snapshot_show(struct file *filep, struct kobject *kobj,
 		device->snapshot_frozen = 0;
 	}
 
-=======
-
-	if (itr.write == 0) {
-		list_for_each_entry_safe(obj, tmp, &device->snapshot_obj_list,
-			node)
-			kgsl_snapshot_put_object(device, obj);
-
-		if (device->snapshot_frozen)
-			KGSL_DRV_ERR(device, "Snapshot objects released\n");
-
-		device->snapshot_frozen = 0;
-	}
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors:drivers/gpu/msm/kgsl_snapshot.c
 done:
 	mutex_unlock(&device->mutex);
 

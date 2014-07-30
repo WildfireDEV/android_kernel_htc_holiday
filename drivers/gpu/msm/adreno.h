@@ -17,13 +17,9 @@
 #include "adreno_drawctxt.h"
 #include "adreno_ringbuffer.h"
 #include "kgsl_iommu.h"
-<<<<<<< HEAD
 #ifdef CONFIG_MSM_OCMEM
 #include <mach/ocmem.h>
 #endif
-=======
-#include <mach/ocmem.h>
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 #define DEVICE_3D_NAME "kgsl-3d"
 #define DEVICE_3D0_NAME "kgsl-3d0"
@@ -40,19 +36,13 @@
 #define KGSL_CMD_FLAGS_NONE             0x00000000
 #define KGSL_CMD_FLAGS_PMODE		0x00000001
 #define KGSL_CMD_FLAGS_INTERNAL_ISSUE	0x00000002
-<<<<<<< HEAD
 #define KGSL_CMD_FLAGS_GET_INT		0x00000004
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #define KGSL_CMD_FLAGS_EOF	        0x00000100
 
 /* Command identifiers */
 #define KGSL_CONTEXT_TO_MEM_IDENTIFIER	0x2EADBEEF
 #define KGSL_CMD_IDENTIFIER		0x2EEDFACE
-<<<<<<< HEAD
 #define KGSL_CMD_INTERNAL_IDENTIFIER	0x2EEDD00D
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #define KGSL_START_OF_IB_IDENTIFIER	0x2EADEABE
 #define KGSL_END_OF_IB_IDENTIFIER	0x2ABEDEAD
 #define KGSL_END_OF_FRAME_IDENTIFIER	0x2E0F2E0F
@@ -66,11 +56,8 @@
 #define ADRENO_DEFAULT_PWRSCALE_POLICY  NULL
 #endif
 
-<<<<<<< HEAD
 void adreno_debugfs_init(struct kgsl_device *device);
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #define ADRENO_ISTORE_START 0x5000 /* Istore offset */
 
 #define ADRENO_NUM_CTX_SWITCH_ALLOWED_BEFORE_DRAW	50
@@ -88,12 +75,9 @@ enum adreno_gpurev {
 	ADRENO_REV_A205 = 205,
 	ADRENO_REV_A220 = 220,
 	ADRENO_REV_A225 = 225,
-<<<<<<< HEAD
 	ADRENO_REV_A305 = 305,
 	ADRENO_REV_A320 = 320,
 	ADRENO_REV_A330 = 330,
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 struct adreno_gpudev;
@@ -129,7 +113,6 @@ struct adreno_device {
 	unsigned int long_ib_ts;
 	unsigned int ft_pf_policy;
 	unsigned int gpulist_index;
-<<<<<<< HEAD
 #ifdef CONFIG_MSM_OCMEM
 	struct ocmem_buf *ocmem_hdl;
 	unsigned int ocmem_base;
@@ -183,24 +166,14 @@ struct adreno_gpudev {
 	 * These registers are in a different location on A3XX,  so define
 	 * them in the structure and use them as variables.
 	 */
-=======
-	struct ocmem_buf *ocmem_hdl;
-	unsigned int ocmem_base;
-};
-
-struct adreno_gpudev {
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	unsigned int reg_rbbm_status;
 	unsigned int reg_cp_pfp_ucode_data;
 	unsigned int reg_cp_pfp_ucode_addr;
 	/* keeps track of when we need to execute the draw workaround code */
 	int ctx_switches_since_last_draw;
 
-<<<<<<< HEAD
 	struct adreno_perfcounters *perfcounters;
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* GPU specific function hooks */
 	int (*ctxt_create)(struct adreno_device *, struct adreno_context *);
 	void (*ctxt_save)(struct adreno_device *, struct adreno_context *);
@@ -211,7 +184,6 @@ struct adreno_gpudev {
 	void (*irq_control)(struct adreno_device *, int);
 	unsigned int (*irq_pending)(struct adreno_device *);
 	void * (*snapshot)(struct adreno_device *, void *, int *, int);
-<<<<<<< HEAD
 	int (*rb_init)(struct adreno_device *, struct adreno_ringbuffer *);
 	void (*perfcounter_init)(struct adreno_device *);
 	void (*start)(struct adreno_device *);
@@ -221,11 +193,6 @@ struct adreno_gpudev {
 	uint64_t (*perfcounter_read)(struct adreno_device *adreno_dev,
 		unsigned int group, unsigned int counter,
 		unsigned int offset);
-=======
-	void (*rb_init)(struct adreno_device *, struct adreno_ringbuffer *);
-	void (*start)(struct adreno_device *);
-	unsigned int (*busy_cycles)(struct adreno_device *);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 };
 
 /*
@@ -285,10 +252,7 @@ struct adreno_ft_data {
 					KGSL_FT_PAGEFAULT_GPUHALT_ENABLE)
 
 extern struct adreno_gpudev adreno_a2xx_gpudev;
-<<<<<<< HEAD
 extern struct adreno_gpudev adreno_a3xx_gpudev;
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 /* A2XX register sets defined in adreno_a2xx.c */
 extern const unsigned int a200_registers[];
@@ -298,7 +262,6 @@ extern const unsigned int a200_registers_count;
 extern const unsigned int a220_registers_count;
 extern const unsigned int a225_registers_count;
 
-<<<<<<< HEAD
 /* A3XX register set defined in adreno_a3xx.c */
 extern const unsigned int a3xx_registers[];
 extern const unsigned int a3xx_registers_count;
@@ -309,8 +272,6 @@ extern const unsigned int a3xx_hlsq_registers_count;
 extern const unsigned int a330_registers[];
 extern const unsigned int a330_registers_count;
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 extern unsigned int ft_detect_regs[];
 extern const unsigned int ft_detect_regs_count;
 
@@ -322,11 +283,8 @@ void adreno_regwrite(struct kgsl_device *device, unsigned int offsetwords,
 				unsigned int value);
 
 int adreno_dump(struct kgsl_device *device, int manual);
-<<<<<<< HEAD
 unsigned int adreno_a3xx_rbbm_clock_ctl_default(struct adreno_device
 							*adreno_dev);
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 struct kgsl_memdesc *adreno_find_region(struct kgsl_device *device,
 						unsigned int pt_base,
@@ -350,7 +308,6 @@ void adreno_dump_rb(struct kgsl_device *device, const void *buf,
 unsigned int adreno_ft_detect(struct kgsl_device *device,
 						unsigned int *prev_reg_val);
 
-<<<<<<< HEAD
 int adreno_perfcounter_get(struct adreno_device *adreno_dev,
 	unsigned int groupid, unsigned int countable, unsigned int *offset,
 	unsigned int flags);
@@ -358,8 +315,6 @@ int adreno_perfcounter_get(struct adreno_device *adreno_dev,
 int adreno_perfcounter_put(struct adreno_device *adreno_dev,
 	unsigned int groupid, unsigned int countable);
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static inline int adreno_is_a200(struct adreno_device *adreno_dev)
 {
 	return (adreno_dev->gpurev == ADRENO_REV_A200);
@@ -401,7 +356,6 @@ static inline int adreno_is_a2xx(struct adreno_device *adreno_dev)
 	return (adreno_dev->gpurev <= 299);
 }
 
-<<<<<<< HEAD
 static inline int adreno_is_a3xx(struct adreno_device *adreno_dev)
 {
 	return (adreno_dev->gpurev >= 300);
@@ -428,15 +382,12 @@ static inline int adreno_is_a330v2(struct adreno_device *adreno_dev)
 		(ADRENO_CHIPID_PATCH(adreno_dev->chip_id) > 0));
 }
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static inline int adreno_rb_ctxtswitch(unsigned int *cmd)
 {
 	return (cmd[0] == cp_nop_packet(1) &&
 		cmd[1] == KGSL_CONTEXT_TO_MEM_IDENTIFIER);
 }
 
-<<<<<<< HEAD
 static inline int adreno_context_timestamp(struct kgsl_context *k_ctxt,
 		struct adreno_ringbuffer *rb)
 {
@@ -451,8 +402,6 @@ static inline int adreno_context_timestamp(struct kgsl_context *k_ctxt,
 	return rb->global_ts;
 }
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 /**
  * adreno_encode_istore_size - encode istore size in CP format
  * @adreno_dev - The 3D device.
@@ -554,7 +503,6 @@ static inline int adreno_add_idle_cmds(struct adreno_device *adreno_dev,
 	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
 	*cmds++ = 0x00000000;
 
-<<<<<<< HEAD
 	if ((adreno_dev->gpurev == ADRENO_REV_A305) ||
 		(adreno_dev->gpurev == ADRENO_REV_A320)) {
 		*cmds++ = cp_type3_packet(CP_WAIT_FOR_ME, 1);
@@ -564,15 +512,4 @@ static inline int adreno_add_idle_cmds(struct adreno_device *adreno_dev,
 	return cmds - start;
 }
 
-=======
-	return cmds - start;
-}
-
-#ifdef CONFIG_DEBUG_FS
-void adreno_debugfs_init(struct kgsl_device *device);
-#else
-static inline void adreno_debugfs_init(struct kgsl_device *device) { }
-#endif
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 #endif /*__ADRENO_H */

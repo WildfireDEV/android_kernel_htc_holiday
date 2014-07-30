@@ -1179,11 +1179,7 @@ combine_limits:
 static void dm_table_set_integrity(struct dm_table *t)
 {
 	struct gendisk *template_disk = NULL;
-<<<<<<< HEAD
 	int rc;
-=======
-        int rc;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	if (!blk_get_integrity(dm_disk(t->md)))
 		return;

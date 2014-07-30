@@ -18,15 +18,12 @@
 
 #include "kgsl_trace.h"
 
-<<<<<<< HEAD
 static inline struct list_head *_get_list_head(struct kgsl_device *device,
 		struct kgsl_context *context)
 {
 	return (context) ? &context->events : &device->events;
 }
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 static void _add_event_to_list(struct list_head *head, struct kgsl_event *event)
 {
 	struct list_head *n;
@@ -45,7 +42,6 @@ static void _add_event_to_list(struct list_head *head, struct kgsl_event *event)
 		list_add_tail(&event->list, head);
 }
 
-<<<<<<< HEAD
 static inline void _do_signal_event(struct kgsl_device *device,
 		struct kgsl_event *event, unsigned int timestamp,
 		unsigned int type)
@@ -182,38 +178,25 @@ void kgsl_signal_events(struct kgsl_device *device,
 }
 EXPORT_SYMBOL(kgsl_signal_events);
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 /**
  * kgsl_add_event - Add a new timstamp event for the KGSL device
  * @device - KGSL device for the new event
  * @id - the context ID that the event should be added to
  * @ts - the timestamp to trigger the event on
-<<<<<<< HEAD
  * @func - callback function to call when the timestamp expires
-=======
- * @cb - callback function to call when the timestamp expires
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  * @priv - private data for the specific event type
  * @owner - driver instance that owns this event
  *
  * @returns - 0 on success or error code on failure
  */
 int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
-<<<<<<< HEAD
 	kgsl_event_func func, void *priv, void *owner)
 {
 	int ret;
-=======
-	void (*cb)(struct kgsl_device *, void *, u32, u32), void *priv,
-	void *owner)
-{
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	struct kgsl_event *event;
 	unsigned int cur_ts;
 	struct kgsl_context *context = NULL;
 
-<<<<<<< HEAD
 	BUG_ON(!mutex_is_locked(&device->mutex));
 
 	if (func == NULL)
@@ -221,13 +204,6 @@ int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
 
 	if (id != KGSL_MEMSTORE_GLOBAL) {
 		context = kgsl_context_get(device, id);
-=======
-	if (cb == NULL)
-		return -EINVAL;
-
-	if (id != KGSL_MEMSTORE_GLOBAL) {
-		context = idr_find(&device->context_idr, id);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		if (context == NULL)
 			return -EINVAL;
 	}
@@ -241,20 +217,14 @@ int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
 	 */
 
 	if (timestamp_cmp(cur_ts, ts) >= 0) {
-<<<<<<< HEAD
 		trace_kgsl_fire_event(id, cur_ts, ts, 0);
 
 		func(device, priv, id, ts, KGSL_EVENT_TIMESTAMP_RETIRED);
 		kgsl_context_put(context);
-=======
-		trace_kgsl_fire_event(id, ts, 0);
-		cb(device, priv, id, ts);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		return 0;
 	}
 
 	event = kzalloc(sizeof(*event), GFP_KERNEL);
-<<<<<<< HEAD
 	if (event == NULL) {
 		kgsl_context_put(context);
 		return -ENOMEM;
@@ -269,31 +239,16 @@ int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
 		kfree(event);
 		return ret;
 	}
-=======
-	if (event == NULL)
-		return -ENOMEM;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 	event->context = context;
 	event->timestamp = ts;
 	event->priv = priv;
-<<<<<<< HEAD
 	event->func = func;
-=======
-	event->func = cb;
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	event->owner = owner;
 	event->created = jiffies;
 
 	trace_kgsl_register_event(id, ts);
 
-<<<<<<< HEAD
-=======
-	/* inc refcount to avoid race conditions in cleanup */
-	if (context)
-		kgsl_context_get(context);
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	/* Add the event to either the owning context or the global list */
 
 	if (context) {
@@ -311,124 +266,35 @@ int kgsl_add_event(struct kgsl_device *device, u32 id, u32 ts,
 	} else
 		_add_event_to_list(&device->events, event);
 
-<<<<<<< HEAD
-=======
-	/*
-	 * Increase the active count on the device to avoid going into power
-	 * saving modes while events are pending
-	 */
-
-	device->active_cnt++;
-
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	queue_work(device->work_queue, &device->ts_expired_ws);
 	return 0;
 }
 EXPORT_SYMBOL(kgsl_add_event);
 
 /**
-<<<<<<< HEAD
-=======
- * kgsl_cancel_events_ctxt - Cancel all events for a context
- * @device - KGSL device for the events to cancel
- * @context - context whose events we want to cancel
- *
- */
-void kgsl_cancel_events_ctxt(struct kgsl_device *device,
-	struct kgsl_context *context)
-{
-	struct kgsl_event *event, *event_tmp;
-	unsigned int id, cur;
-
-	cur = kgsl_readtimestamp(device, context, KGSL_TIMESTAMP_RETIRED);
-	id = context->id;
-
-	list_for_each_entry_safe(event, event_tmp, &context->events, list) {
-		/*
-		 * "cancel" the events by calling their callback.
-		 * Currently, events are used for lock and memory
-		 * management, so if the process is dying the right
-		 * thing to do is release or free.
-		 *
-		 * Send the current timestamp so the event knows how far the
-		 * system got before the event was canceled
-		 */
-		list_del(&event->list);
-
-		trace_kgsl_fire_event(id, cur, jiffies - event->created);
-
-		if (event->func)
-			event->func(device, event->priv, id, cur);
-
-		kgsl_context_put(context);
-		kfree(event);
-
-		kgsl_active_count_put(device);
-	}
-
-	/* Remove ourselves from the master pending list */
-	list_del_init(&context->events_list);
-}
-
-/**
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
  * kgsl_cancel_events - Cancel all generic events for a process
  * @device - KGSL device for the events to cancel
  * @owner - driver instance that owns the events to cancel
  *
  */
-<<<<<<< HEAD
 void kgsl_cancel_events(struct kgsl_device *device, void *owner)
-=======
-void kgsl_cancel_events(struct kgsl_device *device,
-	void *owner)
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 {
 	struct kgsl_event *event, *event_tmp;
 	unsigned int cur;
 
-<<<<<<< HEAD
 	BUG_ON(!mutex_is_locked(&device->mutex));
 
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	cur = kgsl_readtimestamp(device, NULL, KGSL_TIMESTAMP_RETIRED);
 
 	list_for_each_entry_safe(event, event_tmp, &device->events, list) {
 		if (event->owner != owner)
 			continue;
 
-<<<<<<< HEAD
 		_do_signal_event(device, event, cur, KGSL_EVENT_CANCELLED);
-=======
-		/*
-		 * "cancel" the events by calling their callback.
-		 * Currently, events are used for lock and memory
-		 * management, so if the process is dying the right
-		 * thing to do is release or free. Send the current timestamp so
-		 * the callback knows how far the GPU made it before things went
-		 * explosion
-		 */
-		list_del(&event->list);
-
-		trace_kgsl_fire_event(KGSL_MEMSTORE_GLOBAL, cur,
-			jiffies - event->created);
-
-		if (event->func)
-			event->func(device, event->priv, KGSL_MEMSTORE_GLOBAL,
-				cur);
-
-		if (event->context)
-			kgsl_context_put(event->context);
-		kfree(event);
-
-		kgsl_active_count_put(device);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 }
 EXPORT_SYMBOL(kgsl_cancel_events);
 
-<<<<<<< HEAD
 void kgsl_cancel_event(struct kgsl_device *device, struct kgsl_context *context,
 		unsigned int timestamp, kgsl_event_func func,
 		void *priv)
@@ -446,41 +312,6 @@ void kgsl_cancel_event(struct kgsl_device *device, struct kgsl_context *context,
 	}
 }
 EXPORT_SYMBOL(kgsl_cancel_event);
-=======
-static void _process_event_list(struct kgsl_device *device,
-		struct list_head *head, unsigned int timestamp)
-{
-	struct kgsl_event *event, *tmp;
-	unsigned int id;
-
-	list_for_each_entry_safe(event, tmp, head, list) {
-		if (timestamp_cmp(timestamp, event->timestamp) < 0)
-			break;
-
-		id = event->context ? event->context->id : KGSL_MEMSTORE_GLOBAL;
-
-		/*
-		 * Send the timestamp of the expired event, not the current
-		 * timestamp.  This prevents the event handlers from getting
-		 * confused if they don't bother comparing the current timetamp
-		 * to the timestamp they wanted
-		 */
-		list_del(&event->list);
-
-		trace_kgsl_fire_event(id, event->timestamp,
-			jiffies - event->created);
-
-		if (event->func)
-			event->func(device, event->priv, id, event->timestamp);
-
-		if (event->context)
-			kgsl_context_put(event->context);
-		kfree(event);
-
-		kgsl_active_count_put(device);
-	}
-}
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 static inline int _mark_next_event(struct kgsl_device *device,
 		struct list_head *head)
@@ -495,12 +326,8 @@ static inline int _mark_next_event(struct kgsl_device *device,
 		 * timestamp on the event has passed - return that up a layer
 		 */
 
-<<<<<<< HEAD
 		if (device->ftbl->next_event)
 			return device->ftbl->next_event(device, event);
-=======
-		return device->ftbl->next_event(device, event);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	return 0;
@@ -513,11 +340,7 @@ static int kgsl_process_context_events(struct kgsl_device *device,
 		unsigned int timestamp = kgsl_readtimestamp(device, context,
 			KGSL_TIMESTAMP_RETIRED);
 
-<<<<<<< HEAD
 		_retire_events(device, &context->events, timestamp);
-=======
-		_process_event_list(device, &context->events, timestamp);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 		/*
 		 * _mark_next event will return 1 as long as the next event
@@ -548,11 +371,7 @@ void kgsl_process_events(struct work_struct *work)
 
 	/* Process expired global events */
 	timestamp = kgsl_readtimestamp(device, NULL, KGSL_TIMESTAMP_RETIRED);
-<<<<<<< HEAD
 	_retire_events(device, &device->events, timestamp);
-=======
-	_process_event_list(device, &device->events, timestamp);
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	_mark_next_event(device, &device->events);
 
 	/* Now process all of the pending contexts */
@@ -560,24 +379,18 @@ void kgsl_process_events(struct work_struct *work)
 		events_list) {
 
 		/*
-<<<<<<< HEAD
 		 * Increment the refcount to make sure that the list_del_init
 		 * is called with a valid context's list
 		 */
 		_kgsl_context_get(context);
 		/*
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		 * If kgsl_timestamp_expired_context returns 0 then it no longer
 		 * has any pending events and can be removed from the list
 		 */
 
 		if (kgsl_process_context_events(device, context) == 0)
 			list_del_init(&context->events_list);
-<<<<<<< HEAD
 		kgsl_context_put(context);
-=======
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 	}
 
 	mutex_unlock(&device->mutex);

@@ -27,10 +27,6 @@
 #include "ion_priv.h"
 #include <mach/memory.h>
 #include <asm/cacheflush.h>
-<<<<<<< HEAD
-=======
-#include <linux/dma-mapping.h>
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 
 static atomic_t system_heap_allocated;
 static atomic_t system_contig_heap_allocated;
@@ -155,7 +151,6 @@ int ion_system_heap_cache_ops(struct ion_heap *heap, struct ion_buffer *buffer,
 
 	switch (cmd) {
 	case ION_IOC_CLEAN_CACHES:
-<<<<<<< HEAD
 		dmac_clean_range(vaddr, vaddr + length);
 		outer_cache_op = outer_clean_range;
 		break;
@@ -165,28 +160,6 @@ int ion_system_heap_cache_ops(struct ion_heap *heap, struct ion_buffer *buffer,
 		break;
 	case ION_IOC_CLEAN_INV_CACHES:
 		dmac_flush_range(vaddr, vaddr + length);
-=======
-		if (!vaddr)
-			dma_sync_sg_for_device(NULL, buffer->sglist, 1, DMA_TO_DEVICE);
-		else
-			dmac_clean_range(vaddr, vaddr + length);
-		outer_cache_op = outer_clean_range;
-		break;
-	case ION_IOC_INV_CACHES:
-		if (!vaddr)
-			dma_sync_sg_for_cpu(NULL, buffer->sglist, 1, DMA_FROM_DEVICE);
-		else
-			dmac_inv_range(vaddr, vaddr + length);
-		outer_cache_op = outer_inv_range;
-		break;
-	case ION_IOC_CLEAN_INV_CACHES:
-		if (!vaddr) {
-			dma_sync_sg_for_device(NULL, buffer->sglist, 1, DMA_TO_DEVICE);
-			dma_sync_sg_for_cpu(NULL, buffer->sglist, 1, DMA_FROM_DEVICE);
-		} else {
-			dmac_flush_range(vaddr, vaddr + length);
-		}
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
 		outer_cache_op = outer_flush_range;
 		break;
 	default:

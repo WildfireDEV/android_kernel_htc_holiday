@@ -310,21 +310,12 @@ static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall) {
 
 	cur_wall_time = jiffies64_to_cputime64(get_jiffies_64());
 
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_30
 	busy_time  = kstat_cpu(cpu).cpustat.user;
 	busy_time += kstat_cpu(cpu).cpustat.system;
 	busy_time += kstat_cpu(cpu).cpustat.irq;
 	busy_time += kstat_cpu(cpu).cpustat.softirq;
 	busy_time += kstat_cpu(cpu).cpustat.steal;
 	busy_time += kstat_cpu(cpu).cpustat.nice;
-#else
-	busy_time  = kcpustat_cpu(cpu).cpustat[CPUTIME_USER];
-	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SYSTEM];
-	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_IRQ];
-	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SOFTIRQ];
-	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_STEAL];
-	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
-#endif
 
 	idle_time = cur_wall_time - busy_time;
 	if (wall)
@@ -587,18 +578,10 @@ static void cpufreq_smartmax_timer(struct smartmax_info_s *this_smartmax) {
 			u64 cur_nice;
 			unsigned long cur_nice_jiffies;
 
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_30
 			cur_nice = kstat_cpu(j).cpustat.nice - j_this_smartmax->prev_cpu_nice;
 			cur_nice_jiffies = (unsigned long) cputime64_to_jiffies64(cur_nice);
 
 			j_this_smartmax->prev_cpu_nice = kstat_cpu(j).cpustat.nice;
-#else
-			cur_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE] - j_this_smartmax->prev_cpu_nice;
-			cur_nice_jiffies = (unsigned long) cputime64_to_jiffies64(cur_nice);
-
-			j_this_smartmax->prev_cpu_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE];
-
-#endif
 
 			idle_time += jiffies_to_usecs(cur_nice_jiffies);
 		}
@@ -683,13 +666,9 @@ static void update_idle_time(bool online) {
 
 		j_this_smartmax->prev_cpu_idle = get_cpu_idle_time(j,
 				&j_this_smartmax->prev_cpu_wall);
-				
+
 		if (ignore_nice)
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_30
-			j_this_smartmax->prev_cpu_nice = kstat_cpu(j) .cpustat.nice;
-#else
-			j_this_smartmax->prev_cpu_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE];
-#endif
+			j_this_smartmax->prev_cpu_nice = kstat_cpu(j).cpustat.nice;
 	}
 }
 

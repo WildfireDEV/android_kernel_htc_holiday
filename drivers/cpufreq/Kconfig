@@ -335,16 +335,14 @@ config LAGFREE_FREQ_STEP_UP_SLEEP_PERCENT
 
 
 config CPU_FREQ_GOV_BADASS
-	tristate "'badass' cpufreq policy governor"
-	select CPU_FREQ_TABLE
+	tristate "'badass' cpufreq governor"
+	depends on CPU_FREQ
 	help
 	  'badass' - This driver adds a dynamic cpufreq policy governor.
 	  The governor does a periodic polling and
 	  changes frequency based on the CPU utilization.
 	  The support for this governor depends on CPU capability to
-	  do fast frequency switching (i.e, very low latency frequency	  transitions).
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_badass.
+	  do fast frequency switching (i.e, very low latency frequency transitions).
 	  If in doubt, say N.
 
 config CPU_FREQ_GOV_BADASS_2_PHASE

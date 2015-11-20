@@ -195,8 +195,9 @@ SUBARCH := arm
 SUBARCH := arm
 export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= $(SUBARCH)
-CROSS_COMPILE	?= arm-eabi-
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
+ARCH	:= arm
+CROSS_COMPILE	:= /home/user/Downloads/arm-cortex_a8-linux-gnueabi-linaro_4.9.4-2015.06/bin/arm-cortex_a8-linux-gnueabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)

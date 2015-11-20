@@ -39,18 +39,9 @@ EXPORT_SYMBOL_GPL(init_uts_ns);
 
 /* FIXED STRINGS! Don't touch! */
 const char linux_banner[] =
-<<<<<<< HEAD
-	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
-	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
+	"Linux version " UTS_RELEASE " (WildfireDEV) (" LINUX_COMPILER ") " UTS_VERSION "\n";
 
 const char linux_proc_banner[] =
 	"%s version %s"
-	" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
-=======
-	"Linux version " UTS_RELEASE " (Sultan) (" LINUX_COMPILER ") " UTS_VERSION "\n";
-
-const char linux_proc_banner[] =
-	"%s version %s"
-	" (Sultan)"
->>>>>>> ab4ac78... gpu: Port from sultan-kernel-pyramid & fix compile errors
+	" (WildfireDEV)"
 	" (" LINUX_COMPILER ") %s\n";

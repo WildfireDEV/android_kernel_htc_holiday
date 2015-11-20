@@ -56,7 +56,6 @@ const unsigned int a200_registers[] = {
 	0x4000, 0x4003, 0x4800, 0x4805, 0x4900, 0x4900, 0x4908, 0x4908,
 };
 
-/* A220, A225 */
 const unsigned int a220_registers[] = {
 	0x0000, 0x0002, 0x0004, 0x000B, 0x003B, 0x003D, 0x0040, 0x0044,
 	0x0046, 0x0047, 0x01C0, 0x01C1, 0x01C3, 0x01C8, 0x01D5, 0x01D9,
@@ -832,9 +831,6 @@ static unsigned int *build_gmem2sys_cmds(struct adreno_device *adreno_dev,
 	*cmds++ = 0x00010000;
 
 	if (adreno_is_a22x(adreno_dev)) {
-		*cmds++ = cp_type3_packet(CP_SET_DRAW_INIT_FLAGS, 1);
-		*cmds++ = 0;
-
 		*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
 		*cmds++ = CP_REG(REG_A220_RB_LRZ_VSC_CONTROL);
 		*cmds++ = 0x0000000;
@@ -1054,9 +1050,6 @@ static unsigned int *build_sys2gmem_cmds(struct adreno_device *adreno_dev,
 	*cmds++ = 0x00010000;
 
 	if (adreno_is_a22x(adreno_dev)) {
-		*cmds++ = cp_type3_packet(CP_SET_DRAW_INIT_FLAGS, 1);
-		*cmds++ = 0;
-
 		*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
 		*cmds++ = CP_REG(REG_A220_RB_LRZ_VSC_CONTROL);
 		*cmds++ = 0x0000000;
@@ -1513,7 +1506,6 @@ static void a2xx_drawctxt_save(struct adreno_device *adreno_dev,
 			struct adreno_context *context)
 {
 	struct kgsl_device *device = &adreno_dev->dev;
-	unsigned int cmd[22];
 
 	if (context == NULL || (context->flags & CTXT_FLAGS_BEING_DESTROYED))
 		return;
@@ -1523,7 +1515,9 @@ static void a2xx_drawctxt_save(struct adreno_device *adreno_dev,
 			"Current active context has caused gpu hang\n");
 
 	if (!(context->flags & CTXT_FLAGS_PREAMBLE)) {
-
+		kgsl_cffdump_syncmem(NULL, &context->gpustate,
+			context->reg_save[1],
+			context->reg_save[2] << 2, true);
 		/* save registers and constants. */
 		adreno_ringbuffer_issuecmds(device, context,
 			KGSL_CMD_FLAGS_NONE,
@@ -1606,12 +1600,6 @@ static void a2xx_drawctxt_restore(struct adreno_device *adreno_dev,
 	adreno_ringbuffer_issuecmds(device, context, KGSL_CMD_FLAGS_NONE,
 					cmds, 5);
 	kgsl_mmu_setstate(&device->mmu, context->pagetable, context->id);
-
-#ifndef CONFIG_MSM_KGSL_CFF_DUMP_NO_CONTEXT_MEM_DUMP
-	kgsl_cffdump_syncmem(NULL, &context->gpustate,
-		context->gpustate.gpuaddr, LCC_SHADOW_SIZE +
-		REG_SHADOW_SIZE + CMD_BUFFER_SIZE + TEX_SHADOW_SIZE, false);
-#endif
 
 	/* restore gmem.
 	 *  (note: changes shader. shader must not already be restored.)
@@ -1745,16 +1733,6 @@ static void a2xx_cp_intrcallback(struct kgsl_device *device)
 		return;
 	}
 
-	if (status & CP_INT_CNTL__RB_INT_MASK) {
-		/* signal intr completion event */
-		unsigned int enableflag = 0;
-		kgsl_sharedmem_writel(&rb->device->memstore,
-			KGSL_DEVICE_MEMSTORE_OFFSET(ts_cmp_enable),
-			enableflag);
-		wmb();
-		KGSL_CMD_WARN(rb->device, "ringbuffer rb interrupt\n");
-	}
-
 	for (i = 0; i < ARRAY_SIZE(kgsl_cp_error_irqs); i++) {
 		if (status & kgsl_cp_error_irqs[i].mask) {
 			KGSL_CMD_CRIT(rb->device, "%s\n",
@@ -1777,9 +1755,6 @@ static void a2xx_cp_intrcallback(struct kgsl_device *device)
 		KGSL_CMD_WARN(rb->device, "ringbuffer ib1/rb interrupt\n");
 		queue_work(device->work_queue, &device->ts_expired_ws);
 		wake_up_interruptible_all(&device->wait_queue);
-		atomic_notifier_call_chain(&(device->ts_notifier_list),
-					   device->id,
-					   NULL);
 	}
 }
 
@@ -1793,7 +1768,6 @@ static void a2xx_rbbm_intrcallback(struct kgsl_device *device)
 	adreno_regread(device, REG_RBBM_INT_STATUS, &status);
 
 	if (status & RBBM_INT_CNTL__RDERR_INT_MASK) {
-		union rbbm_read_error_u rerr;
 		adreno_regread(device, REG_RBBM_READ_ERROR, &rderr);
 		source = (rderr & RBBM_READ_ERROR_REQUESTER)
 			 ? "host" : "cp";
@@ -1869,17 +1843,17 @@ static void a2xx_irq_control(struct adreno_device *adreno_dev, int state)
 static unsigned int a2xx_irq_pending(struct adreno_device *adreno_dev)
 {
 	struct kgsl_device *device = &adreno_dev->dev;
-	unsigned int rbbm, cp, mh;
+	unsigned int status;
 
-	adreno_regread(device, REG_RBBM_INT_CNTL, &rbbm);
-	adreno_regread(device, REG_CP_INT_CNTL, &cp);
-	adreno_regread(device, MH_INTERRUPT_MASK, &mh);
+	adreno_regread(device, REG_MASTER_INT_SIGNAL, &status);
 
-	return ((rbbm & RBBM_INT_MASK) || (cp & CP_INT_MASK) ||
-		(mh & kgsl_mmu_get_int_mask())) ? 1 : 0;
+	return (status &
+		(MASTER_INT_SIGNAL__MH_INT_STAT |
+		 MASTER_INT_SIGNAL__CP_INT_STAT |
+		 MASTER_INT_SIGNAL__RBBM_INT_STAT)) ? 1 : 0;
 }
 
-static void a2xx_rb_init(struct adreno_device *adreno_dev,
+static int a2xx_rb_init(struct adreno_device *adreno_dev,
 			struct adreno_ringbuffer *rb)
 {
 	unsigned int *cmds, cmds_gpu;
@@ -1997,7 +1971,6 @@ static void a2xx_gmeminit(struct adreno_device *adreno_dev)
 static void a2xx_start(struct adreno_device *adreno_dev)
 {
 	struct kgsl_device *device = &adreno_dev->dev;
-	int init_reftimestamp = 0x7fffffff;
 
 	/*
 	 * We need to make sure all blocks are powered up and clocked
@@ -2055,23 +2028,12 @@ static void a2xx_start(struct adreno_device *adreno_dev)
 	else
 		adreno_regwrite(device, REG_RBBM_PM_OVERRIDE2, 0x80);
 
-	kgsl_sharedmem_set(&device->memstore, 0, 0, device->memstore.size);
-
-	kgsl_sharedmem_writel(&device->memstore,
-			      KGSL_DEVICE_MEMSTORE_OFFSET(ref_wait_ts),
-			      init_reftimestamp);
-
 	adreno_regwrite(device, REG_RBBM_DEBUG, 0x00080000);
 
 	/* Make sure interrupts are disabled */
 	adreno_regwrite(device, REG_RBBM_INT_CNTL, 0);
 	adreno_regwrite(device, REG_CP_INT_CNTL, 0);
 	adreno_regwrite(device, REG_SQ_INT_CNTL, 0);
-
-	if (adreno_is_a22x(adreno_dev))
-		adreno_dev->gmemspace.sizebytes = SZ_512K;
-	else
-		adreno_dev->gmemspace.sizebytes = SZ_256K;
 
 	a2xx_gmeminit(adreno_dev);
 }

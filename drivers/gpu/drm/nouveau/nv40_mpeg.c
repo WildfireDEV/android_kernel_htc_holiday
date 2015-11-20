@@ -26,31 +26,9 @@
 #include "nouveau_drv.h"
 #include "nouveau_ramht.h"
 
-struct nv31_mpeg_engine {
+struct nv40_mpeg_engine {
 	struct nouveau_exec_engine base;
-	atomic_t refcount;
 };
-
-
-static int
-nv31_mpeg_context_new(struct nouveau_channel *chan, int engine)
-{
-	struct nv31_mpeg_engine *pmpeg = nv_engine(chan->dev, engine);
-
-	if (!atomic_add_unless(&pmpeg->refcount, 1, 1))
-		return -EBUSY;
-
-	chan->engctx[engine] = (void *)0xdeadcafe;
-	return 0;
-}
-
-static void
-nv31_mpeg_context_del(struct nouveau_channel *chan, int engine)
-{
-	struct nv31_mpeg_engine *pmpeg = nv_engine(chan->dev, engine);
-	atomic_dec(&pmpeg->refcount);
-	chan->engctx[engine] = NULL;
-}
 
 static int
 nv40_mpeg_context_new(struct nouveau_channel *chan, int engine)
@@ -103,7 +81,7 @@ nv40_mpeg_context_del(struct nouveau_channel *chan, int engine)
 }
 
 static int
-nv31_mpeg_object_new(struct nouveau_channel *chan, int engine,
+nv40_mpeg_object_new(struct nouveau_channel *chan, int engine,
 		      u32 handle, u16 class)
 {
 	struct drm_device *dev = chan->dev;
@@ -125,10 +103,10 @@ nv31_mpeg_object_new(struct nouveau_channel *chan, int engine,
 }
 
 static int
-nv31_mpeg_init(struct drm_device *dev, int engine)
+nv40_mpeg_init(struct drm_device *dev, int engine)
 {
 	struct drm_nouveau_private *dev_priv = dev->dev_private;
-	struct nv31_mpeg_engine *pmpeg = nv_engine(dev, engine);
+	struct nv40_mpeg_engine *pmpeg = nv_engine(dev, engine);
 	int i;
 
 	/* VPE init */
@@ -143,7 +121,7 @@ nv31_mpeg_init(struct drm_device *dev, int engine)
 	/* PMPEG init */
 	nv_wr32(dev, 0x00b32c, 0x00000000);
 	nv_wr32(dev, 0x00b314, 0x00000100);
-	nv_wr32(dev, 0x00b220, nv44_graph_class(dev) ? 0x00000044 : 0x00000031);
+	nv_wr32(dev, 0x00b220, 0x00000044);
 	nv_wr32(dev, 0x00b300, 0x02001ec1);
 	nv_mask(dev, 0x00b32c, 0x00000001, 0x00000001);
 
@@ -159,7 +137,7 @@ nv31_mpeg_init(struct drm_device *dev, int engine)
 }
 
 static int
-nv31_mpeg_fini(struct drm_device *dev, int engine, bool suspend)
+nv40_mpeg_fini(struct drm_device *dev, int engine)
 {
 	/*XXX: context save? */
 	nv_mask(dev, 0x00b32c, 0x00000001, 0x00000000);
@@ -168,7 +146,7 @@ nv31_mpeg_fini(struct drm_device *dev, int engine, bool suspend)
 }
 
 static int
-nv31_mpeg_mthd_dma(struct nouveau_channel *chan, u32 class, u32 mthd, u32 data)
+nv40_mpeg_mthd_dma(struct nouveau_channel *chan, u32 class, u32 mthd, u32 data)
 {
 	struct drm_device *dev = chan->dev;
 	u32 inst = data << 4;
@@ -206,16 +184,12 @@ nv31_mpeg_mthd_dma(struct nouveau_channel *chan, u32 class, u32 mthd, u32 data)
 }
 
 static int
-nv31_mpeg_isr_chid(struct drm_device *dev, u32 inst)
+nv40_mpeg_isr_chid(struct drm_device *dev, u32 inst)
 {
 	struct drm_nouveau_private *dev_priv = dev->dev_private;
 	struct nouveau_gpuobj *ctx;
 	unsigned long flags;
 	int i;
-
-	/* hardcode drm channel id on nv3x, so swmthd lookup works */
-	if (dev_priv->card_type < NV_40)
-		return 0;
 
 	spin_lock_irqsave(&dev_priv->channels.lock, flags);
 	for (i = 0; i < dev_priv->engine.fifo.channels; i++) {
@@ -231,7 +205,7 @@ nv31_mpeg_isr_chid(struct drm_device *dev, u32 inst)
 }
 
 static void
-nv31_vpe_set_tile_region(struct drm_device *dev, int i)
+nv40_vpe_set_tile_region(struct drm_device *dev, int i)
 {
 	struct drm_nouveau_private *dev_priv = dev->dev_private;
 	struct nouveau_tile_reg *tile = &dev_priv->tile.reg[i];
@@ -242,10 +216,10 @@ nv31_vpe_set_tile_region(struct drm_device *dev, int i)
 }
 
 static void
-nv31_mpeg_isr(struct drm_device *dev)
+nv40_mpeg_isr(struct drm_device *dev)
 {
 	u32 inst = (nv_rd32(dev, 0x00b318) & 0x000fffff) << 4;
-	u32 chid = nv31_mpeg_isr_chid(dev, inst);
+	u32 chid = nv40_mpeg_isr_chid(dev, inst);
 	u32 stat = nv_rd32(dev, 0x00b100);
 	u32 type = nv_rd32(dev, 0x00b230);
 	u32 mthd = nv_rd32(dev, 0x00b234);
@@ -275,10 +249,10 @@ nv31_mpeg_isr(struct drm_device *dev)
 }
 
 static void
-nv31_vpe_isr(struct drm_device *dev)
+nv40_vpe_isr(struct drm_device *dev)
 {
 	if (nv_rd32(dev, 0x00b100))
-		nv31_mpeg_isr(dev);
+		nv40_mpeg_isr(dev);
 
 	if (nv_rd32(dev, 0x00b800)) {
 		u32 stat = nv_rd32(dev, 0x00b800);
@@ -288,9 +262,9 @@ nv31_vpe_isr(struct drm_device *dev)
 }
 
 static void
-nv31_mpeg_destroy(struct drm_device *dev, int engine)
+nv40_mpeg_destroy(struct drm_device *dev, int engine)
 {
-	struct nv31_mpeg_engine *pmpeg = nv_engine(dev, engine);
+	struct nv40_mpeg_engine *pmpeg = nv_engine(dev, engine);
 
 	nouveau_irq_unregister(dev, 0);
 
@@ -299,41 +273,34 @@ nv31_mpeg_destroy(struct drm_device *dev, int engine)
 }
 
 int
-nv31_mpeg_create(struct drm_device *dev)
+nv40_mpeg_create(struct drm_device *dev)
 {
-	struct drm_nouveau_private *dev_priv = dev->dev_private;
-	struct nv31_mpeg_engine *pmpeg;
+	struct nv40_mpeg_engine *pmpeg;
 
 	pmpeg = kzalloc(sizeof(*pmpeg), GFP_KERNEL);
 	if (!pmpeg)
 		return -ENOMEM;
-	atomic_set(&pmpeg->refcount, 0);
 
-	pmpeg->base.destroy = nv31_mpeg_destroy;
-	pmpeg->base.init = nv31_mpeg_init;
-	pmpeg->base.fini = nv31_mpeg_fini;
-	if (dev_priv->card_type < NV_40) {
-		pmpeg->base.context_new = nv31_mpeg_context_new;
-		pmpeg->base.context_del = nv31_mpeg_context_del;
-	} else {
-		pmpeg->base.context_new = nv40_mpeg_context_new;
-		pmpeg->base.context_del = nv40_mpeg_context_del;
-	}
-	pmpeg->base.object_new = nv31_mpeg_object_new;
+	pmpeg->base.destroy = nv40_mpeg_destroy;
+	pmpeg->base.init = nv40_mpeg_init;
+	pmpeg->base.fini = nv40_mpeg_fini;
+	pmpeg->base.context_new = nv40_mpeg_context_new;
+	pmpeg->base.context_del = nv40_mpeg_context_del;
+	pmpeg->base.object_new = nv40_mpeg_object_new;
 
 	/* ISR vector, PMC_ENABLE bit,  and TILE regs are shared between
 	 * all VPE engines, for this driver's purposes the PMPEG engine
 	 * will be treated as the "master" and handle the global VPE
 	 * bits too
 	 */
-	pmpeg->base.set_tile_region = nv31_vpe_set_tile_region;
-	nouveau_irq_register(dev, 0, nv31_vpe_isr);
+	pmpeg->base.set_tile_region = nv40_vpe_set_tile_region;
+	nouveau_irq_register(dev, 0, nv40_vpe_isr);
 
 	NVOBJ_ENGINE_ADD(dev, MPEG, &pmpeg->base);
 	NVOBJ_CLASS(dev, 0x3174, MPEG);
-	NVOBJ_MTHD (dev, 0x3174, 0x0190, nv31_mpeg_mthd_dma);
-	NVOBJ_MTHD (dev, 0x3174, 0x01a0, nv31_mpeg_mthd_dma);
-	NVOBJ_MTHD (dev, 0x3174, 0x01b0, nv31_mpeg_mthd_dma);
+	NVOBJ_MTHD (dev, 0x3174, 0x0190, nv40_mpeg_mthd_dma);
+	NVOBJ_MTHD (dev, 0x3174, 0x01a0, nv40_mpeg_mthd_dma);
+	NVOBJ_MTHD (dev, 0x3174, 0x01b0, nv40_mpeg_mthd_dma);
 
 #if 0
 	NVOBJ_ENGINE_ADD(dev, ME, &pme->base);

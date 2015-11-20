@@ -12,15 +12,19 @@
 #define KGSL_VERSION_MINOR        14
 
 /*context flags */
-#define KGSL_CONTEXT_SAVE_GMEM		0x00000001
-#define KGSL_CONTEXT_NO_GMEM_ALLOC	0x00000002
-#define KGSL_CONTEXT_SUBMIT_IB_LIST	0x00000004
-#define KGSL_CONTEXT_CTX_SWITCH		0x00000008
-#define KGSL_CONTEXT_PREAMBLE		0x00000010
-#define KGSL_CONTEXT_TRASH_STATE	0x00000020
-#define KGSL_CONTEXT_PER_CONTEXT_TS	0x00000040
-#define KGSL_CONTEXT_USER_GENERATED_TS	0x00000080
-#define KGSL_CONTEXT_NO_FAULT_TOLERANCE 0x00000200
+#define KGSL_CONTEXT_SAVE_GMEM		  0x00000001
+#define KGSL_CONTEXT_NO_GMEM_ALLOC	  0x00000002
+#define KGSL_CONTEXT_SUBMIT_IB_LIST	  0x00000004
+#define KGSL_CONTEXT_CTX_SWITCH		  0x00000008
+#define KGSL_CONTEXT_PREAMBLE		  0x00000010
+#define KGSL_CONTEXT_TRASH_STATE	  0x00000020
+#define KGSL_CONTEXT_PER_CONTEXT_TS	  0x00000040
+#define KGSL_CONTEXT_USER_GENERATED_TS	  0x00000080
+#define KGSL_CONTEXT_END_OF_FRAME         0x00000100
+#define KGSL_CONTEXT_NO_FAULT_TOLERANCE	  0x00000200
+/* bits [12:15] are reserved for future use */
+#define KGSL_CONTEXT_TYPE_MASK            0x01F00000
+#define KGSL_CONTEXT_TYPE_SHIFT           20
 
 #define KGSL_CONTEXT_TYPE_ANY		  0
 #define KGSL_CONTEXT_TYPE_GL		  1
@@ -30,8 +34,7 @@
 
 #define KGSL_CONTEXT_INVALID 0xffffffff
 
-/* Memory allocayion flags */
-#define KGSL_MEMFLAGS_GPUREADONLY	0x01000000
+/* --- Memory allocation flags --- */
 
 /* General allocation hints */
 #define KGSL_MEMFLAGS_GPUREADONLY 0x01000000
@@ -50,7 +53,6 @@
 #define KGSL_MEMTYPE_MASK		0x0000FF00
 #define KGSL_MEMTYPE_SHIFT		8
 
-/* Memory types for which allocations are made */
 #define KGSL_MEMTYPE_OBJECTANY			0
 #define KGSL_MEMTYPE_FRAMEBUFFER		1
 #define KGSL_MEMTYPE_RENDERBUFFER		2
@@ -81,7 +83,8 @@
 #define KGSL_MEMALIGN_MASK		0x00FF0000
 #define KGSL_MEMALIGN_SHIFT		16
 
-/* generic flag values */
+/* --- generic KGSL flag values --- */
+
 #define KGSL_FLAGS_NORMALMODE  0x00000000
 #define KGSL_FLAGS_SAFEMODE    0x00000001
 #define KGSL_FLAGS_INITIALIZED0 0x00000002
@@ -199,12 +202,6 @@ struct kgsl_shadowprop {
 	unsigned int flags; /* contains KGSL_FLAGS_ values */
 };
 
-struct kgsl_pwrlevel {
-	unsigned int gpu_freq;
-	unsigned int bus_freq;
-	unsigned int io_fraction;
-};
-
 struct kgsl_version {
 	unsigned int drv_major;
 	unsigned int drv_minor;
@@ -212,43 +209,25 @@ struct kgsl_version {
 	unsigned int dev_minor;
 };
 
-#ifdef __KERNEL__
+/* Performance counter groups */
 
-#define KGSL_3D0_REG_MEMORY	"kgsl_3d0_reg_memory"
-#define KGSL_3D0_IRQ		"kgsl_3d0_irq"
-#define KGSL_2D0_REG_MEMORY	"kgsl_2d0_reg_memory"
-#define KGSL_2D0_IRQ		"kgsl_2d0_irq"
-#define KGSL_2D1_REG_MEMORY	"kgsl_2d1_reg_memory"
-#define KGSL_2D1_IRQ		"kgsl_2d1_irq"
+#define KGSL_PERFCOUNTER_GROUP_CP 0x0
+#define KGSL_PERFCOUNTER_GROUP_RBBM 0x1
+#define KGSL_PERFCOUNTER_GROUP_PC 0x2
+#define KGSL_PERFCOUNTER_GROUP_VFD 0x3
+#define KGSL_PERFCOUNTER_GROUP_HLSQ 0x4
+#define KGSL_PERFCOUNTER_GROUP_VPC 0x5
+#define KGSL_PERFCOUNTER_GROUP_TSE 0x6
+#define KGSL_PERFCOUNTER_GROUP_RAS 0x7
+#define KGSL_PERFCOUNTER_GROUP_UCHE 0x8
+#define KGSL_PERFCOUNTER_GROUP_TP 0x9
+#define KGSL_PERFCOUNTER_GROUP_SP 0xA
+#define KGSL_PERFCOUNTER_GROUP_RB 0xB
+#define KGSL_PERFCOUNTER_GROUP_PWR 0xC
+#define KGSL_PERFCOUNTER_GROUP_VBIF 0xD
+#define KGSL_PERFCOUNTER_GROUP_VBIF_PWR 0xE
 
-struct kgsl_device_iommu_data {
-	const char **iommu_ctx_names;
-	int iommu_ctx_count;
-	unsigned int physstart;
-	unsigned int physend;
-};
-
-struct kgsl_device_platform_data {
-	struct kgsl_pwrlevel pwrlevel[KGSL_MAX_PWRLEVELS];
-	int init_level;
-	int max_level;
-	int num_levels;
-	int (*set_grp_async)(void);
-	unsigned int idle_timeout;
-	unsigned int nap_allowed;
-	unsigned int clk_map;
-	unsigned int idle_needed;
-	struct msm_bus_scale_pdata *bus_scale_table;
-#if !defined(CONFIG_MSM_KGSL_ADRENO200) && !defined(CONFIG_MSM_KGSL_ADRENO205)
-	struct kgsl_device_iommu_data *iommu_data;
-	int iommu_count;
-#else
-	const char *iommu_user_ctx_name;
-	const char *iommu_priv_ctx_name;
-#endif
-};
-
-#endif
+#define KGSL_PERFCOUNTER_NOT_USED 0xFFFFFFFF
 
 /* structure holds list of ibs */
 struct kgsl_ibdesc {
@@ -282,14 +261,6 @@ struct kgsl_device_getproperty {
 
 /* IOCTL_KGSL_DEVICE_READ (0x3) - removed 03/2012
  */
-struct kgsl_device_regread {
-	unsigned int offsetwords;
-	unsigned int value; /* output param */
-};
-
-#define IOCTL_KGSL_DEVICE_REGREAD \
-	_IOWR(KGSL_IOC_TYPE, 0x3, struct kgsl_device_regread)
-
 
 /* block until the GPU has executed past a given timestamp
  * timeout is in milliseconds.
